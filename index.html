@@ -26,7 +26,8 @@
     .listing-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.12); }
     .listing-image { height: 160px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 48px; }
     .listing-body { padding: 16px; }
-    .listing-name { font-size: 16px; font-weight: 600; color: #333; margin-bottom: 8px; }
+    .listing-name { font-size: 16px; font-weight: 600; color: #333; margin-bottom: 8px; text-decoration: none; }
+    .listing-name:hover { color: #1a73e8; text-decoration: underline; }
     .listing-info { font-size: 13px; color: #666; margin-bottom: 6px; }
     .listing-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
     .tag { padding: 4px 8px; background: #e8f0fe; color: #1a73e8; border-radius: 4px; font-size: 11px; }
@@ -202,7 +203,9 @@
                     {listing.name ? listing.name.charAt(0) : '🏠'}
                   </div>
                   <div className="listing-body">
-                    <div className="listing-name">{listing.name || '未知小区'}</div>
+                    <a href={listing.url} target="_blank" rel="noopener noreferrer" className="listing-name">
+                      {listing.name || '未知小区'}
+                    </a>
                     <div className="listing-info">📐 面积: {formatArea(listing.area)}</div>
                     <div className="listing-info">📍 板块: {listing.district || '-'}</div>
                     <div className="listing-info">🏢 楼层: {listing.floor || '-'} | {listing.year_build || '-'}年</div>
