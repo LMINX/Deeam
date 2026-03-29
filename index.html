@@ -101,7 +101,8 @@
             total: latestListings.length,
             minPrice,
             avgPrice,
-            snapshots: data.length
+            snapshots: data.length,
+            lastScrape: latestListings.length > 0 ? Math.max(...latestListings.map(l => new Date(l.scraped_at || l.created_at))) : null
           });
           
           setListings(latestListings);
@@ -159,6 +160,10 @@
             <div className="stat-card">
               <div className="num">{stats.snapshots}</div>
               <div className="label">累计快照数</div>
+            </div>
+            <div className="stat-card">
+              <div className="num">{stats.lastScrape ? new Date(stats.lastScrape).toLocaleTimeString('zh-CN', {timeZone:'Asia/Shanghai'}) : '-'}</div>
+              <div className="label">最后更新</div>
             </div>
           </div>
           
