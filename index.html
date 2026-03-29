@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🏠 长宁链家房价追踪器</title>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f0f2f5; min-height: 100vh; }
+    .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+    header { background: linear-gradient(135deg, #1a73e8, #0d47a1); color: white; padding: 30px 20px; border-radius: 16px; margin-bottom: 24px; text-align: center; }
+    header h1 { font-size: 28px; margin-bottom: 8px; }
+    header p { opacity: 0.9; font-size: 14px; }
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .stat-card { background: white; padding: 20px; border-radius: 12px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .stat-card .num { font-size: 32px; font-weight: 700; color: #1a73e8; }
+    .stat-card .label { color: #666; font-size: 13px; margin-top: 4px; }
+    .filters { background: white; padding: 16px; border-radius: 12px; margin-bottom: 20px; display: flex; gap: 12px; flex-wrap: wrap; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .filters select, .filters input { padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; }
+    .filters label { font-size: 13px; color: #666; }
+    .listings { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
+    .listing-card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08); transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; }
+    .listing-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.12); }
+    .listing-image { height: 160px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 48px; }
+    .listing-body { padding: 16px; }
+    .listing-name { font-size: 16px; font-weight: 600; color: #333; margin-bottom: 8px; }
+    .listing-info { font-size: 13px; color: #666; margin-bottom: 6px; }
+    .listing-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+    .tag { padding: 4px 8px; background: #e8f0fe; color: #1a73e8; border-radius: 4px; font-size: 11px; }
+    .price-tag { background: #fce8e6; color: #c5221f; padding: 6px 12px; border-radius: 8px; font-weight: 700; font-size: 18px; display: inline-block; margin-top: 10px; }
+    .price-tag .unit { font-size: 12px; font-weight: 400; color: #666; }
+    .empty { text-align: center; padding: 60px 20px; color: #999; }
+    .empty-icon { font-size: 64px; margin-bottom: 16px; }
+    .loading { text-align: center; padding: 60px 20px; color: #666; }
+    .refresh-btn { background: #1a73e8; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 14px; }
+    .refresh-btn:hover { background: #1557b0; }
+    .refresh-btn:disabled { background: #ccc; cursor: not-allowed; }
+    .last-update { font-size: 12px; color: #999; margin-top: 8px; }
+    footer { text-align: center; padding: 40px 20px; color: #999; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  
+  <script type="text/babel">
+    const { useState, useEffect, useCallback } = React;
+    
+    const SUPABASE_URL = 'https://zojmkzwhyoxowssxkoko.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpvam1rendoeW94b3dzc3hrb2tvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ3MzY4ODIsImV4cCI6MjA5MDMxMjg4Mn0.1vrlQlyL6kQ63Rc3G_otmTwIcqpGrQnZaFFMMou7bcE';
+    
+    function App() {
+      const [listings, setListings] = useState([]);
+      const [loading, setLoading] = useState(true);
+      const [lastUpdate, setLastUpdate] = useState(null);
+      const [filterPrice, setFilterPrice] = useState('all');
+      const [filterArea, setFilterArea] = useState('all');
+      const [uniqueNames, setUniqueNames] = useState([]);
+      const [stats, setStats] = useState({ total: 0, minPrice: 0, avgPrice: 0, snapshots: 0 });
+      
+      const fetchListings = useCallback(async () => {
+        setLoading(true);
+        try {
+          // Fetch latest snapshots grouped by name (most recent entry for each name)
+          const response = await fetch(
+            `${SUPABASE_URL}/rest/v1/listings?select=*&order=created_at.desc`,
+            {
+              headers: {
+                'apikey': SUPABASE_ANON_KEY,
+                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+              }
+            }
+          );
+          
+          if (!response.ok) throw new Error('Failed to fetch');
+          const data = await response.json();
+          
+          // Get unique names and their latest entries
+          const latestByName = {};
+          data.forEach(item => {
+            const key = item.name + '_' + item.area;
+            if (!latestByName[key] || new Date(item.created_at) > new Date(latestByName[key].created_at)) {
+              latestByName[key] = item;
+            }
+          });
+          
+          const latestListings = Object.values(latestByName);
+          
+          // Get unique names for filter
+          const names = [...new Set(latestListings.map(l => l.name))].sort();
+          
+          // Calculate stats
+          const prices = latestListings.map(l => parseFloat(l.price)).filter(p => !isNaN(p));
+          const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
+          const avgPrice = prices.length > 0 ? Math.round(prices.reduce((a, b) => a + b, 0) / prices.length) : 0;
+          
+          setStats({
+            total: latestListings.length,
+            minPrice,
+            avgPrice,
+            snapshots: data.length
+          });
+          
+          setListings(latestListings);
+          setUniqueNames(names);
+          setLastUpdate(new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' }));
+        } catch (error) {
+          console.error('Error fetching:', error);
+        } finally {
+          setLoading(false);
+        }
+      }, []);
+      
+      useEffect(() => {
+        fetchListings();
+        const interval = setInterval(fetchListings, 60000); // Auto-refresh every minute
+        return () => clearInterval(interval);
+      }, [fetchListings]);
+      
+      const filteredListings = listings.filter(l => {
+        const price = parseFloat(l.price);
+        if (filterPrice === 'under150' && price >= 150) return false;
+        if (filterPrice === '150-200' && (price < 150 || price >= 200)) return false;
+        if (filterPrice === '200plus' && price < 200) return false;
+        
+        const area = parseFloat(l.area);
+        if (filterArea === 'under35' && area >= 35) return false;
+        if (filterArea === '35-50' && (area < 35 || area >= 50)) return false;
+        if (filterArea === '50plus' && area < 50) return false;
+        
+        return true;
+      });
+      
+      const formatArea = (area) => area ? `${area}㎡` : '-';
+      
+      return (
+        <div className="container">
+          <header>
+            <h1>🏠 长宁链家房价追踪器</h1>
+            <p>实时监控上海长宁区200万以下二手房价格变化</p>
+          </header>
+          
+          <div className="stats">
+            <div className="stat-card">
+              <div className="num">{stats.total}</div>
+              <div className="label">在售房源</div>
+            </div>
+            <div className="stat-card">
+              <div className="num">{stats.minPrice}</div>
+              <div className="label">最低总价(万)</div>
+            </div>
+            <div className="stat-card">
+              <div className="num">{stats.avgPrice}</div>
+              <div className="label">平均总价(万)</div>
+            </div>
+            <div className="stat-card">
+              <div className="num">{stats.snapshots}</div>
+              <div className="label">累计快照数</div>
+            </div>
+          </div>
+          
+          <div className="filters">
+            <label>总价筛选:</label>
+            <select value={filterPrice} onChange={e => setFilterPrice(e.target.value)}>
+              <option value="all">全部</option>
+              <option value="under150">150万以下</option>
+              <option value="150-200">150-200万</option>
+              <option value="200plus">200万及以上</option>
+            </select>
+            
+            <label>面积筛选:</label>
+            <select value={filterArea} onChange={e => setFilterArea(e.target.value)}>
+              <option value="all">全部</option>
+              <option value="under35">35㎡以下</option>
+              <option value="35-50">35-50㎡</option>
+              <option value="50plus">50㎡以上</option>
+            </select>
+            
+            <button className="refresh-btn" onClick={fetchListings} disabled={loading}>
+              {loading ? '加载中...' : '🔄 刷新'}
+            </button>
+            
+            {lastUpdate && <div className="last-update">最后更新: {lastUpdate}</div>}
+          </div>
+          
+          {loading && listings.length === 0 ? (
+            <div className="loading">
+              <div>🔄 加载中...</div>
+            </div>
+          ) : filteredListings.length === 0 ? (
+            <div className="empty">
+              <div className="empty-icon">🏠</div>
+              <div>暂无符合条件的房源</div>
+            </div>
+          ) : (
+            <div className="listings">
+              {filteredListings.map((listing, idx) => (
+                <div key={idx} className="listing-card">
+                  <div className="listing-image">
+                    {listing.name ? listing.name.charAt(0) : '🏠'}
+                  </div>
+                  <div className="listing-body">
+                    <div className="listing-name">{listing.name || '未知小区'}</div>
+                    <div className="listing-info">📐 面积: {formatArea(listing.area)}</div>
+                    <div className="listing-info">📍 板块: {listing.district || '-'}</div>
+                    <div className="listing-info">🏢 楼层: {listing.floor || '-'} | {listing.year_build || '-'}年</div>
+                    <div className="listing-info">💰 单价: {listing.unit_price || '-'}元/㎡</div>
+                    <div className="listing-tags">
+                      {(listing.tags || '').split(',').filter(t => t).map((tag, i) => (
+                        <span key={i} className="tag">{tag.trim()}</span>
+                      ))}
+                    </div>
+                    <div className="price-tag">
+                      {listing.price}万<span className="unit"> ({listing.unit_price}元/㎡)</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+          
+          <footer>
+            <p>数据来源: 链家网 · 由 OpenClaw 自动追踪</p>
+            <p>每5分钟自动更新 · 请勿视为投资建议，购房前请自行核实信息</p>
+          </footer>
+        </div>
+      );
+    }
+    
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>
