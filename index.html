@@ -56,8 +56,8 @@
       const [listings, setListings] = useState([]);
       const [loading, setLoading] = useState(true);
       const [lastUpdate, setLastUpdate] = useState(null);
-      const [filterPrice, setFilterPrice] = useState('all');
       const [filterArea, setFilterArea] = useState('all');
+      const [customMaxPrice, setCustomMaxPrice] = useState('');
       const [uniqueNames, setUniqueNames] = useState([]);
       const [stats, setStats] = useState({ total: 0, minPrice: 0, avgPrice: 0, snapshots: 0 });
       
@@ -123,9 +123,7 @@
       
       const filteredListings = listings.filter(l => {
         const price = parseFloat(l.price);
-        if (filterPrice === 'under150' && price >= 150) return false;
-        if (filterPrice === '150-200' && (price < 150 || price >= 200)) return false;
-        if (filterPrice === '200plus' && price < 200) return false;
+        if (customMaxPrice && price > parseFloat(customMaxPrice)) return false;
         
         const area = parseFloat(l.area);
         if (filterArea === 'under35' && area >= 35) return false;
@@ -141,7 +139,7 @@
         <div className="container">
           <header>
             <h1>🏠 长宁链家房价追踪器</h1>
-            <p>实时监控上海长宁区200万以下二手房价格变化</p>
+            <p>实时监控上海长宁区二手房价格变化</p>
           </header>
           
           <div className="stats">
@@ -168,13 +166,14 @@
           </div>
           
           <div className="filters">
-            <label>总价筛选:</label>
-            <select value={filterPrice} onChange={e => setFilterPrice(e.target.value)}>
-              <option value="all">全部</option>
-              <option value="under150">150万以下</option>
-              <option value="150-200">150-200万</option>
-              <option value="200plus">200万及以上</option>
-            </select>
+            <label>最高总价(万):</label>
+            <input 
+              type="number" 
+              placeholder="不限" 
+              value={customMaxPrice} 
+              onChange={e => setCustomMaxPrice(e.target.value)}
+              style={{width: '80px'}}
+            />
             
             <label>面积筛选:</label>
             <select value={filterArea} onChange={e => setFilterArea(e.target.value)}>
