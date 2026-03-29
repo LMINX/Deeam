@@ -58,6 +58,7 @@
       const [lastUpdate, setLastUpdate] = useState(null);
       const [filterArea, setFilterArea] = useState('all');
       const [customMaxPrice, setCustomMaxPrice] = useState('');
+      const [syncStatus, setSyncStatus] = useState('');
       const [uniqueNames, setUniqueNames] = useState([]);
       const [stats, setStats] = useState({ total: 0, minPrice: 0, avgPrice: 0, snapshots: 0 });
       
@@ -117,6 +118,18 @@
       
       useEffect(() => {
         fetchListings();
+        // Load saved max_price from config
+        fetch(`${SUPABASE_URL}/rest/v1/config?key=eq.max_price`, {
+          headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+          }
+        }).then(r => r.json()).then(data => {
+          if (data && data[0] && data[0].value && data[0].value !== '0') {
+            setCustomMaxPrice(data[0].value);
+          }
+        }).catch(() => {});
+        
         const interval = setInterval(fetchListings, 60000); // Auto-refresh every minute
         return () => clearInterval(interval);
       }, [fetchListings]);
@@ -132,6 +145,31 @@
         
         return true;
       });
+      
+      const syncConfig = async () => {
+        const price = customMaxPrice || '0';
+        setSyncStatus('同步中...');
+        try {
+          const res = await fetch(`${SUPABASE_URL}/rest/v1/config?key=eq.max_price`, {
+            method: 'POST',
+            headers: {
+              'apikey': SUPABASE_ANON_KEY,
+              'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+              'Content-Type': 'application/json',
+              'Prefer': 'resolution=merge-duplicates'
+            },
+            body: JSON.stringify([{ key: 'max_price', value: price }])
+          });
+          if (res.ok) {
+            setSyncStatus('已同步✓');
+            setTimeout(() => setSyncStatus(''), 2000);
+          } else {
+            setSyncStatus('同步失败');
+          }
+        } catch {
+          setSyncStatus('同步失败');
+        }
+      };
       
       const formatArea = (area) => area ? `${area}㎡` : '-';
       
@@ -174,6 +212,10 @@
               onChange={e => setCustomMaxPrice(e.target.value)}
               style={{width: '80px'}}
             />
+            
+            <button className="refresh-btn" onClick={syncConfig} style={{background: '#34a853', fontSize: '12px', padding: '6px 12px'}}>
+              {syncStatus || '💾 同步条件到自动抓取'}
+            </button>
             
             <label>面积筛选:</label>
             <select value={filterArea} onChange={e => setFilterArea(e.target.value)}>
