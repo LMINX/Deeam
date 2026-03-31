@@ -41,6 +41,23 @@
     .refresh-btn:disabled { background: #ccc; cursor: not-allowed; }
     .last-update { font-size: 12px; color: #999; margin-top: 8px; }
     footer { text-align: center; padding: 40px 20px; color: #999; font-size: 12px; }
+    .price-range { background: #e8f5e9; color: #2e7d32; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; margin-top: 6px; display: inline-block; }
+    .history-btn { background: #ff9800; color: white; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 11px; margin-left: 8px; }
+    .history-btn:hover { background: #f57c00; }
+    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+    .modal-content { background: white; border-radius: 16px; padding: 24px; max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .modal-title { font-size: 18px; font-weight: 700; color: #333; }
+    .modal-close { background: none; border: none; font-size: 24px; cursor: pointer; color: #999; }
+    .modal-close:hover { color: #333; }
+    .history-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; align-items: center; }
+    .history-item:last-child { border-bottom: none; }
+    .history-date { color: #666; font-size: 13px; }
+    .history-price { font-weight: 700; font-size: 16px; color: #1a73e8; }
+    .history-change { font-size: 11px; margin-left: 8px; }
+    .history-change.up { color: #c5221f; }
+    .history-change.down { color: #34a853; }
+    .price-chart { margin: 16px 0; }
   </style>
 </head>
 <body>
@@ -61,11 +78,12 @@
       const [syncStatus, setSyncStatus] = useState('');
       const [uniqueNames, setUniqueNames] = useState([]);
       const [stats, setStats] = useState({ total: 0, minPrice: 0, avgPrice: 0, snapshots: 0 });
+      const [priceHistory, setPriceHistory] = useState(null); // For modal
       
       const fetchListings = useCallback(async () => {
         setLoading(true);
         try {
-          // Fetch latest snapshots grouped by name (most recent entry for each name)
+          // Fetch all snapshots to calculate price history
           const response = await fetch(
             `${SUPABASE_URL}/rest/v1/listings?select=*&order=created_at.desc`,
             {
@@ -79,7 +97,33 @@
           if (!response.ok) throw new Error('Failed to fetch');
           const data = await response.json();
           
-          // Get unique names and their latest entries
+          // Group by listing_id and calculate price stats
+          const byListingId = {};
+          data.forEach(item => {
+            if (!byListingId[item.listing_id]) {
+              byListingId[item.listing_id] = [];
+            }
+            byListingId[item.listing_id].push(item);
+          });
+          
+          // Calculate min/max/current for each listing
+          const priceStats = {};
+          Object.keys(byListingId).forEach(id => {
+            const records = byListingId[id];
+            const prices = records.map(r => parseFloat(r.price)).filter(p => !isNaN(p));
+            const sortedByDate = [...records].sort((a, b) => new Date(b.scraped_at) - new Date(a.scraped_at));
+            priceStats[id] = {
+              min: prices.length > 0 ? Math.min(...prices) : 0,
+              max: prices.length > 0 ? Math.max(...prices) : 0,
+              count: records.length,
+              history: sortedByDate.map(r => ({
+                price: r.price,
+                scraped_at: r.scraped_at
+              }))
+            };
+          });
+          
+          // Get unique names and their latest entries, with price stats
           const latestByName = {};
           data.forEach(item => {
             const key = item.name + '_' + item.area;
@@ -88,7 +132,11 @@
             }
           });
           
-          const latestListings = Object.values(latestByName);
+          // Attach price stats to each listing
+          const latestListings = Object.values(latestByName).map(item => ({
+            ...item,
+            priceStats: priceStats[item.listing_id] || { min: item.price, max: item.price, count: 1, history: [{ price: item.price, scraped_at: item.scraped_at }] }
+          }));
           
           // Get unique names for filter
           const names = [...new Set(latestListings.map(l => l.name))].sort();
@@ -264,6 +312,20 @@
                     <div className="price-tag">
                       {listing.price}万<span className="unit"> ({listing.unit_price}元/㎡)</span>
                     </div>
+                    {listing.priceStats && listing.priceStats.count > 1 && (
+                      <div style={{marginTop: '6px'}}>
+                        <span className="price-range">
+                          📊 {listing.priceStats.min}万 - {listing.priceStats.max}万
+                        </span>
+                        <button className="history-btn" onClick={() => setPriceHistory({
+                          name: listing.name,
+                          listing_id: listing.listing_id,
+                          ...listing.priceStats
+                        })}>
+                          📈 历史({listing.priceStats.count})
+                        </button>
+                      </div>
+                    )}
                     {listing.scraped_at && (
                       <div className="listing-info" style={{marginTop: '8px', color: '#888', fontSize: '11px'}}>
                         🕐 {new Date(listing.scraped_at).toLocaleString('en-GB', {timeZone:'Europe/London', month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit', second:'2-digit'})}
@@ -272,6 +334,61 @@
                   </div>
                 </div>
               ))}
+            </div>
+          )}
+          
+          {/* Price History Modal */}
+          {priceHistory && (
+            <div className="modal-overlay" onClick={() => setPriceHistory(null)}>
+              <div className="modal-content" onClick={e => e.stopPropagation()}>
+                <div className="modal-header">
+                  <div className="modal-title">📈 价格历史</div>
+                  <button className="modal-close" onClick={() => setPriceHistory(null)}>&times;</button>
+                </div>
+                <div style={{marginBottom: '16px', color: '#666', fontSize: '14px'}}>
+                  {priceHistory.name || '未知小区'} ({priceHistory.listing_id})
+                </div>
+                
+                <div style={{display:'flex', justifyContent:'space-between', marginBottom:'20px', background:'#f5f5f5', padding:'12px', borderRadius:'8px'}}>
+                  <div style={{textAlign:'center'}}>
+                    <div style={{fontSize:'11px', color:'#666'}}>最低价</div>
+                    <div style={{fontSize:'20px', fontWeight:'700', color:'#34a853'}}>{priceHistory.min}万</div>
+                  </div>
+                  <div style={{textAlign:'center'}}>
+                    <div style={{fontSize:'11px', color:'#666'}}>当前价</div>
+                    <div style={{fontSize:'20px', fontWeight:'700', color:'#1a73e8'}}>{priceHistory.history[0]?.price}万</div>
+                  </div>
+                  <div style={{textAlign:'center'}}>
+                    <div style={{fontSize:'11px', color:'#666'}}>最高价</div>
+                    <div style={{fontSize:'20px', fontWeight:'700', color:'#c5221f'}}>{priceHistory.max}万</div>
+                  </div>
+                </div>
+                
+                <div className="price-chart">
+                  <div style={{fontSize:'13px', color:'#666', marginBottom:'10px'}}>价格变化时间线：</div>
+                  {priceHistory.history.map((h, i) => {
+                    const prev = priceHistory.history[i + 1];
+                    const change = prev ? parseFloat(h.price) - parseFloat(prev.price) : 0;
+                    return (
+                      <div key={i} className="history-item">
+                        <div>
+                          <div className="history-date">
+                            🕐 {new Date(h.scraped_at).toLocaleString('en-GB', {timeZone:'Europe/London', month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit'})}
+                          </div>
+                        </div>
+                        <div>
+                          <span className="history-price">{h.price}万</span>
+                          {change !== 0 && (
+                            <span className={`history-change ${change > 0 ? 'up' : 'down'}`}>
+                              {change > 0 ? '↑' : '↓'}{Math.abs(change)}万
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
           )}
           
