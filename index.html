@@ -155,16 +155,18 @@
             };
           });
           
-          const latestById = {};
+          const seenListings = {};
           data.forEach(item => {
-            // Deduplicate by listing_id
-            const key = item.listing_id || item.name + '_' + item.area;
-            if (!latestById[key] || new Date(item.created_at) > new Date(latestById[key].created_at)) {
-              latestById[key] = item;
+            // Deduplicate by listing_id, or by name+area if listing_id is empty
+            const primaryKey = item.listing_id || item.name + '_' + item.area;
+            // Secondary check: if same name+area exists, skip
+            const secondaryKey = item.name + '_' + item.area;
+            if (!seenListings[secondaryKey] || new Date(item.created_at) > new Date(seenListings[secondaryKey].created_at)) {
+              seenListings[secondaryKey] = item;
             }
           });
           
-          const latestListings = Object.values(latestById).map(item => ({
+          const latestListings = Object.values(seenListings).map(item => ({
             ...item,
             isFollowed: followedIds.includes(item.listing_id),
             // Wishlist: if name contains the community name
