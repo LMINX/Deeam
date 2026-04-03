@@ -165,7 +165,7 @@
           const latestListings = Object.values(latestByName).map(item => ({
             ...item,
             isFollowed: followedIds.includes(item.listing_id),
-            isWishlist: WISHLIST_COMMUNITIES.some(c => item.name.includes(c) || (item.district && item.district.includes(c))),
+            isWishlist: WISHLIST_COMMUNITIES.some(c => item.name.includes(c)),
             priceStats: priceStats[item.listing_id] || { min: item.price, max: item.price, count: 1, history: [{ price: item.price, scraped_at: item.scraped_at }] }
           }));
           
