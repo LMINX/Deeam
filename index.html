@@ -130,20 +130,21 @@
           if (!response.ok) throw new Error('Failed to fetch');
           const data = await response.json();
           
-          const byListingId = {};
+          const byKey = {};
           data.forEach(item => {
-            if (!byListingId[item.listing_id]) {
-              byListingId[item.listing_id] = [];
+            const key = (item.name || '') + '_' + (item.area || '');
+            if (!byKey[key]) {
+              byKey[key] = [];
             }
-            byListingId[item.listing_id].push(item);
+            byKey[key].push(item);
           });
           
           const priceStats = {};
-          Object.keys(byListingId).forEach(id => {
-            const records = byListingId[id];
+          Object.keys(byKey).forEach(key => {
+            const records = byKey[key];
             const prices = records.map(r => parseFloat(r.price)).filter(p => !isNaN(p));
             const sortedByDate = [...records].sort((a, b) => new Date(b.scraped_at) - new Date(a.scraped_at));
-            priceStats[id] = {
+            priceStats[key] = {
               min: prices.length > 0 ? Math.min(...prices) : 0,
               max: prices.length > 0 ? Math.max(...prices) : 0,
               count: records.length,
@@ -156,7 +157,7 @@
           
           const latestByName = {};
           data.forEach(item => {
-            const key = item.name + '_' + item.area;
+            const key = (item.name || '') + '_' + (item.area || '');
             if (!latestByName[key] || new Date(item.created_at) > new Date(latestByName[key].created_at)) {
               latestByName[key] = item;
             }
@@ -166,7 +167,7 @@
             ...item,
             isFollowed: followedIds.includes(item.listing_id),
             isWishlist: WISHLIST_COMMUNITIES.some(c => item.name.includes(c)),
-            priceStats: priceStats[item.listing_id] || { min: item.price, max: item.price, count: 1, history: [{ price: item.price, scraped_at: item.scraped_at }] }
+            priceStats: priceStats[(item.name || '') + '_' + (item.area || '')] || { min: item.price, max: item.price, count: 1, history: [{ price: item.price, scraped_at: item.scraped_at }] }
           }));
           
           const names = [...new Set(latestListings.map(l => l.name))].sort();
