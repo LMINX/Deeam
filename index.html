@@ -155,15 +155,16 @@
             };
           });
           
-          const latestByName = {};
+          const latestById = {};
           data.forEach(item => {
-            const key = (item.name || '') + '_' + (item.area || '');
-            if (!latestByName[key] || new Date(item.created_at) > new Date(latestByName[key].created_at)) {
-              latestByName[key] = item;
+            // Deduplicate by listing_id
+            const key = item.listing_id || item.name + '_' + item.area;
+            if (!latestById[key] || new Date(item.created_at) > new Date(latestById[key].created_at)) {
+              latestById[key] = item;
             }
           });
           
-          const latestListings = Object.values(latestByName).map(item => ({
+          const latestListings = Object.values(latestById).map(item => ({
             ...item,
             isFollowed: followedIds.includes(item.listing_id),
             // Wishlist: if name contains the community name
