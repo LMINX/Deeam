@@ -402,7 +402,7 @@
                 <div key={idx} className={`listing-card ${listing.isFollowed ? 'followed' : ''} ${listing.isWishlist ? 'wishlist-item' : ''}`}>
                   <div className={`listing-image ${listing.isWishlist ? 'wishlist-bg' : ''}`}>
                     <div className="floor-icon">🏠</div>
-                    <div className="room-info">{(listing.name || '').match(/(\d+室\d+厅/)?.[1] || (listing.area ? listing.area + '㎡' : '查看')}</div>
+                    <div className="room-info">{listing.area ? listing.area + '㎡' : '查看'}</div>
                     <button 
                       className={`follow-btn ${listing.isFollowed ? 'followed' : ''}`}
                       onClick={(e) => {
