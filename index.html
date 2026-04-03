@@ -155,23 +155,31 @@
             };
           });
           
-          const seenListings = {};
+          // First pass: group by name+area to find duplicates with different IDs
+          const byNameArea = {};
           data.forEach(item => {
-            // If listing_id exists, use it; otherwise use name+area
-            const idKey = item.listing_id ? parseInt(item.listing_id) : 0;
-            // Use listing_id as primary key, fall back to name+area for empty ID
-            const useId = idKey > 0;
-            const key = useId ? 'id_' + idKey : 'name_' + (item.name || '') + '_' + (item.area || '');
-            if (!seenListings[key] || new Date(item.created_at) > new Date(seenListings[key].created_at)) {
-              seenListings[key] = item;
-            }
+            const key = (item.name || '') + '_' + (item.area || '');
+            if (!byNameArea[key]) byNameArea[key] = [];
+            byNameArea[key].push(item);
           });
           
-          const latestListings = Object.values(seenListings).map(item => ({
+          // Build final list, preferring entries with valid listing_ids
+          const deduped = [];
+          Object.values(byNameArea).forEach(group => {
+            // Sort by: has listing_id (non-empty) first, then by created_at desc
+            group.sort((a, b) => {
+              const aHasId = a.listing_id ? 1 : 0;
+              const bHasId = b.listing_id ? 1 : 0;
+              if (aHasId !== bHasId) return bHasId - aHasId;
+              return new Date(b.created_at) - new Date(a.created_at);
+            });
+            deduped.push(group[0]);
+          });
+          
+          const latestListings = deduped.map(item => ({
             ...item,
             isFollowed: followedIds.includes(item.listing_id),
-            // Wishlist: if name contains the community name
-isWishlist: WISHLIST_COMMUNITIES.some(c => item.name.includes(c)),
+            isWishlist: WISHLIST_COMMUNITIES.some(c => item.name.includes(c)),
             priceStats: priceStats[(item.name || '') + '_' + (item.area || '')] || { min: item.price, max: item.price, count: 1, history: [{ price: item.price, scraped_at: item.scraped_at }] }
           }));
           
