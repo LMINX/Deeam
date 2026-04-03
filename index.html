@@ -32,7 +32,9 @@
     .listing-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.12); }
     .listing-card.followed { border: 2px solid #f59e0b; }
     .listing-card.wishlist-item { border: 2px solid #8b5cf6; }
-    .listing-image { height: 160px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 48px; position: relative; }
+    .listing-image { height: 160px; background: linear-gradient(135deg, #1a73e8 0%, #0d47a1 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; position: relative; overflow: hidden; }
+    .listing-image .floor-icon { font-size: 56px; margin-bottom: 8px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); }
+    .listing-image .room-info { font-size: 14px; font-weight: 600; background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 12px; }
     .listing-image.wishlist-bg { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); }
     .follow-btn { position: absolute; top: 10px; right: 10px; background: white; border: none; border-radius: 50%; width: 40px; height: 40px; cursor: pointer; font-size: 20px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.2); transition: transform 0.2s; }
     .follow-btn:hover { transform: scale(1.1); }
@@ -399,7 +401,8 @@
               {sortedListings.map((listing, idx) => (
                 <div key={idx} className={`listing-card ${listing.isFollowed ? 'followed' : ''} ${listing.isWishlist ? 'wishlist-item' : ''}`}>
                   <div className={`listing-image ${listing.isWishlist ? 'wishlist-bg' : ''}`}>
-                    {listing.name ? listing.name.charAt(0) : '🏠'}
+                    <div className="floor-icon">🏠</div>
+                    <div className="room-info">{(listing.name || '').match(/(\d+室\d+厅/)?.[1] || (listing.area ? listing.area + '㎡' : '查看')}</div>
                     <button 
                       className={`follow-btn ${listing.isFollowed ? 'followed' : ''}`}
                       onClick={(e) => {
