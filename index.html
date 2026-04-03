@@ -22,11 +22,15 @@
     .filters select, .filters input { padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; }
     .filters label { font-size: 13px; color: #666; }
     .listings { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
-    .listing-card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08); transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; }
+    .listing-card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08); transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; position: relative; }
     .listing-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.12); }
-    .listing-image { height: 160px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 48px; }
+    .listing-card.followed { border: 2px solid #f59e0b; }
+    .listing-image { height: 160px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 48px; position: relative; }
+    .follow-btn { position: absolute; top: 10px; right: 10px; background: white; border: none; border-radius: 50%; width: 40px; height: 40px; cursor: pointer; font-size: 20px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.2); transition: transform 0.2s; }
+    .follow-btn:hover { transform: scale(1.1); }
+    .follow-btn.followed { background: #fef3c7; }
     .listing-body { padding: 16px; }
-    .listing-name { font-size: 16px; font-weight: 600; color: #333; margin-bottom: 8px; text-decoration: none; }
+    .listing-name { font-size: 16px; font-weight: 600; color: #333; margin-bottom: 8px; text-decoration: none; display: block; }
     .listing-name:hover { color: #1a73e8; text-decoration: underline; }
     .listing-info { font-size: 13px; color: #666; margin-bottom: 6px; }
     .listing-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
@@ -58,6 +62,7 @@
     .history-change.up { color: #c5221f; }
     .history-change.down { color: #34a853; }
     .price-chart { margin: 16px 0; }
+    .followed-badge { background: #f59e0b; color: white; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; }
   </style>
 </head>
 <body>
@@ -69,6 +74,18 @@
     const SUPABASE_URL = 'https://zojmkzwhyoxowssxkoko.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpvam1rendoeW94b3dzc3hrb2tvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ3MzY4ODIsImV4cCI6MjA5MDMxMjg4Mn0.1vrlQlyL6kQ63Rc3G_otmTwIcqpGrQnZaFFMMou7bcE';
     
+    // Load followed IDs from localStorage
+    const loadFollowed = () => {
+      try {
+        return JSON.parse(localStorage.getItem('lianjia_followed') || '[]');
+      } catch { return []; }
+    };
+    
+    // Save followed IDs to localStorage
+    const saveFollowed = (ids) => {
+      localStorage.setItem('lianjia_followed', JSON.stringify(ids));
+    };
+    
     function App() {
       const [listings, setListings] = useState([]);
       const [loading, setLoading] = useState(true);
@@ -77,14 +94,15 @@
       const [customMaxPrice, setCustomMaxPrice] = useState('');
       const [syncStatus, setSyncStatus] = useState('');
       const [uniqueNames, setUniqueNames] = useState([]);
-      const [stats, setStats] = useState({ total: 0, minPrice: 0, avgPrice: 0, snapshots: 0 });
-      const [priceHistory, setPriceHistory] = useState(null); // For modal
-      const [historyRange, setHistoryRange] = useState(30); // days filter
+      const [stats, setStats] = useState({ total: 0, minPrice: 0, avgPrice: 0, snapshots: 0, followedCount: 0 });
+      const [priceHistory, setPriceHistory] = useState(null);
+      const [historyRange, setHistoryRange] = useState(30);
+      const [showFollowedOnly, setShowFollowedOnly] = useState(false);
+      const [followedIds, setFollowedIds] = useState(loadFollowed);
       
       const fetchListings = useCallback(async () => {
         setLoading(true);
         try {
-          // Fetch all snapshots to calculate price history
           const response = await fetch(
             `${SUPABASE_URL}/rest/v1/listings?select=*&order=created_at.desc`,
             {
@@ -98,7 +116,6 @@
           if (!response.ok) throw new Error('Failed to fetch');
           const data = await response.json();
           
-          // Group by listing_id and calculate price stats
           const byListingId = {};
           data.forEach(item => {
             if (!byListingId[item.listing_id]) {
@@ -107,7 +124,6 @@
             byListingId[item.listing_id].push(item);
           });
           
-          // Calculate min/max/current for each listing
           const priceStats = {};
           Object.keys(byListingId).forEach(id => {
             const records = byListingId[id];
@@ -124,7 +140,6 @@
             };
           });
           
-          // Get unique names and their latest entries, with price stats
           const latestByName = {};
           data.forEach(item => {
             const key = item.name + '_' + item.area;
@@ -133,26 +148,27 @@
             }
           });
           
-          // Attach price stats to each listing
           const latestListings = Object.values(latestByName).map(item => ({
             ...item,
+            isFollowed: followedIds.includes(item.listing_id),
             priceStats: priceStats[item.listing_id] || { min: item.price, max: item.price, count: 1, history: [{ price: item.price, scraped_at: item.scraped_at }] }
           }));
           
-          // Get unique names for filter
           const names = [...new Set(latestListings.map(l => l.name))].sort();
-          
-          // Calculate stats
           const prices = latestListings.map(l => parseFloat(l.price)).filter(p => !isNaN(p));
           const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
           const avgPrice = prices.length > 0 ? Math.round(prices.reduce((a, b) => a + b, 0) / prices.length) : 0;
+          
+          // Update followed status
+          const followedListings = latestListings.filter(l => followedIds.includes(l.listing_id));
           
           setStats({
             total: latestListings.length,
             minPrice,
             avgPrice,
             snapshots: data.length,
-            lastScrape: latestListings.length > 0 ? Math.max(...latestListings.map(l => new Date(l.scraped_at || l.created_at))) : null
+            lastScrape: latestListings.length > 0 ? Math.max(...latestListings.map(l => new Date(l.scraped_at || l.created_at))) : null,
+            followedCount: followedListings.length
           });
           
           setListings(latestListings);
@@ -163,11 +179,10 @@
         } finally {
           setLoading(false);
         }
-      }, []);
+      }, [followedIds]);
       
       useEffect(() => {
         fetchListings();
-        // Load saved max_price from config
         fetch(`${SUPABASE_URL}/rest/v1/config?key=eq.max_price`, {
           headers: {
             'apikey': SUPABASE_ANON_KEY,
@@ -179,11 +194,34 @@
           }
         }).catch(() => {});
         
-        const interval = setInterval(fetchListings, 60000); // Auto-refresh every minute
+        const interval = setInterval(fetchListings, 60000);
         return () => clearInterval(interval);
       }, [fetchListings]);
       
+      // Toggle follow status
+      const toggleFollow = (listingId) => {
+        const newFollowed = followedIds.includes(listingId)
+          ? followedIds.filter(id => id !== listingId)
+          : [...followedIds, listingId];
+        setFollowedIds(newFollowed);
+        saveFollowed(newFollowed);
+        
+        // Update local listings state
+        setListings(prev => prev.map(l => 
+          l.listing_id === listingId ? { ...l, isFollowed: !followedIds.includes(listingId) } : l
+        ));
+        
+        // Update stats
+        setStats(prev => ({
+          ...prev,
+          followedCount: newFollowed.length
+        }));
+      };
+      
       const filteredListings = listings.filter(l => {
+        // Followed filter
+        if (showFollowedOnly && !followedIds.includes(l.listing_id)) return false;
+        
         const price = parseFloat(l.price);
         if (customMaxPrice && price > parseFloat(customMaxPrice)) return false;
         
@@ -193,6 +231,12 @@
         if (filterArea === '50plus' && area < 50) return false;
         
         return true;
+      });
+      
+      // Sort: followed first, then by price
+      const sortedListings = [...filteredListings].sort((a, b) => {
+        if (a.isFollowed !== b.isFollowed) return b.isFollowed ? 1 : -1;
+        return parseFloat(a.price) - parseFloat(b.price);
       });
       
       const syncConfig = async () => {
@@ -243,6 +287,10 @@
               <div className="label">平均总价(万)</div>
             </div>
             <div className="stat-card">
+              <div className="num" style={{color: '#f59e0b'}}>⭐ {stats.followedCount}</div>
+              <div className="label">关注房源</div>
+            </div>
+            <div className="stat-card">
               <div className="num">{stats.snapshots}</div>
               <div className="label">累计快照数</div>
             </div>
@@ -274,6 +322,14 @@
               <option value="50plus">50㎡以上</option>
             </select>
             
+            <button 
+              className="refresh-btn" 
+              onClick={() => setShowFollowedOnly(!showFollowedOnly)}
+              style={{background: showFollowedOnly ? '#f59e0b' : '#e0e0e0', color: showFollowedOnly ? 'white' : '#666', fontSize: '12px'}}
+            >
+              {showFollowedOnly ? '⭐ 显示全部' : '⭐ 只看关注'}
+            </button>
+            
             <button className="refresh-btn" onClick={fetchListings} disabled={loading}>
               {loading ? '加载中...' : '🔄 刷新'}
             </button>
@@ -285,22 +341,33 @@
             <div className="loading">
               <div>🔄 加载中...</div>
             </div>
-          ) : filteredListings.length === 0 ? (
+          ) : sortedListings.length === 0 ? (
             <div className="empty">
               <div className="empty-icon">🏠</div>
-              <div>暂无符合条件的房源</div>
+              <div>{showFollowedOnly ? '暂无关注的房源' : '暂无符合条件的房源'}</div>
             </div>
           ) : (
             <div className="listings">
-              {filteredListings.map((listing, idx) => (
-                <div key={idx} className="listing-card">
+              {sortedListings.map((listing, idx) => (
+                <div key={idx} className={`listing-card ${listing.isFollowed ? 'followed' : ''}`}>
                   <div className="listing-image">
                     {listing.name ? listing.name.charAt(0) : '🏠'}
+                    <button 
+                      className={`follow-btn ${listing.isFollowed ? 'followed' : ''}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleFollow(listing.listing_id);
+                      }}
+                      title={listing.isFollowed ? '取消关注' : '添加关注'}
+                    >
+                      {listing.isFollowed ? '⭐' : '☆'}
+                    </button>
                   </div>
                   <div className="listing-body">
                     <a href={listing.url} target="_blank" rel="noopener noreferrer" className="listing-name">
                       {listing.name || '未知小区'}
                     </a>
+                    {listing.isFollowed && <span className="followed-badge">⭐ 已关注</span>}
                     <div className="listing-info">📐 面积: {formatArea(listing.area)}</div>
                     <div className="listing-info">📍 板块: {listing.district || '-'}</div>
                     <div className="listing-info">🏢 楼层: {listing.floor || '-'} | {listing.year_build || '-'}年</div>
@@ -361,7 +428,6 @@
                   {priceHistory.name || '未知小区'} ({priceHistory.listing_id})
                 </div>
                 
-                {/* Time Range Selector */}
                 <div style={{display:'flex', gap:'8px', marginBottom:'16px'}}>
                   {[1, 5, 10, 30].map(days => (
                     <button key={days} onClick={() => setHistoryRange(days)}
@@ -417,7 +483,6 @@
                       const barWidth = Math.min(30, (barAreaWidth / barCount) - 4);
                       const priceRange = maxP - minP || 1;
                       
-                      // Y axis labels
                       const yLabels = [];
                       for (let i = 0; i <= 4; i++) {
                         const price = minP + (priceRange * i / 4);
@@ -425,29 +490,23 @@
                         yLabels.push({price: price.toFixed(0), y});
                       }
                       
-                      // Data points
                       const points = displayHistory.map((h, i) => {
                         const x = chartLeft + (i + 0.5) * (barAreaWidth / barCount);
                         const y = chartBottom - ((parseFloat(h.price) - minP) / priceRange) * chartHeight;
                         return {x, y, price: h.price, date: h.scraped_at};
                       });
                       
-                      // Connect points with line
                       const linePath = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
                       
                       return (
                         <g>
-                          {/* Grid lines */}
                           {yLabels.map((l, i) => (
                             <line key={i} x1={chartLeft} y1={l.y} x2={chartRight} y2={l.y} stroke="#eee" strokeWidth="1"/>
                           ))}
-                          {/* Y axis labels */}
                           {yLabels.map((l, i) => (
                             <text key={i} x={chartLeft - 8} y={l.y + 4} textAnchor="end" fontSize="10" fill="#999">{l.price}</text>
                           ))}
-                          {/* Line connecting points */}
                           <path d={linePath} fill="none" stroke="#1a73e8" strokeWidth="2" opacity="0.5"/>
-                          {/* Bars */}
                           {points.map((p, i) => {
                             const barHeight = Math.max(2, ((parseFloat(p.price) - minP) / priceRange) * chartHeight);
                             const isLatest = i === points.length - 1;
