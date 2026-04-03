@@ -155,28 +155,16 @@
             };
           });
           
-          // First pass: group by name+area to find duplicates with different IDs
-          const byNameArea = {};
+          // Deduplicate by listing_id only (name variations are extraction artifacts)
+          const byListingId = {};
           data.forEach(item => {
-            const key = (item.name || '') + '_' + (item.area || '');
-            if (!byNameArea[key]) byNameArea[key] = [];
-            byNameArea[key].push(item);
+            const id = item.listing_id || '__empty__';
+            if (!byListingId[id] || new Date(item.created_at) > new Date(byListingId[id].created_at)) {
+              byListingId[id] = item;
+            }
           });
           
-          // Build final list, preferring entries with valid listing_ids
-          const deduped = [];
-          Object.values(byNameArea).forEach(group => {
-            // Sort by: has listing_id (non-empty) first, then by created_at desc
-            group.sort((a, b) => {
-              const aHasId = a.listing_id ? 1 : 0;
-              const bHasId = b.listing_id ? 1 : 0;
-              if (aHasId !== bHasId) return bHasId - aHasId;
-              return new Date(b.created_at) - new Date(a.created_at);
-            });
-            deduped.push(group[0]);
-          });
-          
-          const latestListings = deduped.map(item => ({
+          const latestListings = Object.values(byListingId).map(item => ({
             ...item,
             isFollowed: followedIds.includes(item.listing_id),
             isWishlist: WISHLIST_COMMUNITIES.some(c => item.name.includes(c)),
