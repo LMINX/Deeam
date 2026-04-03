@@ -166,8 +166,8 @@
           const latestListings = Object.values(latestByName).map(item => ({
             ...item,
             isFollowed: followedIds.includes(item.listing_id),
-            // Strict match: only exact community name "天山二村" (no extra text)
-isWishlist: WISHLIST_COMMUNITIES.includes(item.name),
+            // Wishlist: include if name contains any wishlist community
+isWishlist: WISHLIST_COMMUNITIES.some(c => item.name.includes(c)),
             priceStats: priceStats[(item.name || '') + '_' + (item.area || '')] || { min: item.price, max: item.price, count: 1, history: [{ price: item.price, scraped_at: item.scraped_at }] }
           }));
           
