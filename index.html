@@ -157,12 +157,13 @@
           
           const seenListings = {};
           data.forEach(item => {
-            // Deduplicate by listing_id, or by name+area if listing_id is empty
-            const primaryKey = item.listing_id || item.name + '_' + item.area;
-            // Secondary check: if same name+area exists, skip
-            const secondaryKey = item.name + '_' + item.area;
-            if (!seenListings[secondaryKey] || new Date(item.created_at) > new Date(seenListings[secondaryKey].created_at)) {
-              seenListings[secondaryKey] = item;
+            // If listing_id exists, use it; otherwise use name+area
+            const idKey = item.listing_id ? parseInt(item.listing_id) : 0;
+            // Use listing_id as primary key, fall back to name+area for empty ID
+            const useId = idKey > 0;
+            const key = useId ? 'id_' + idKey : 'name_' + (item.name || '') + '_' + (item.area || '');
+            if (!seenListings[key] || new Date(item.created_at) > new Date(seenListings[key].created_at)) {
+              seenListings[key] = item;
             }
           });
           
