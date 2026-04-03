@@ -242,7 +242,8 @@
         if (showFollowedOnly && !followedIds.includes(l.listing_id)) return false;
         
         const price = parseFloat(l.price);
-        if (customMaxPrice && price > parseFloat(customMaxPrice)) return false;
+        // Don't filter wishlist items by max price
+        if (customMaxPrice && !l.isWishlist && price > parseFloat(customMaxPrice)) return false;
         
         const area = parseFloat(l.area);
         if (filterArea === 'under35' && area >= 35) return false;
