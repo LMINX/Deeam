@@ -14,10 +14,16 @@
     header { background: linear-gradient(135deg, #1a73e8, #0d47a1); color: white; padding: 30px 20px; border-radius: 16px; margin-bottom: 24px; text-align: center; }
     header h1 { font-size: 28px; margin-bottom: 8px; }
     header p { opacity: 0.9; font-size: 14px; }
+    .nav-tabs { display: flex; gap: 8px; margin-bottom: 20px; }
+    .nav-tab { padding: 12px 24px; background: white; border: none; border-radius: 8px; cursor: pointer; font-size: 15px; font-weight: 600; color: #666; transition: all 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.08); }
+    .nav-tab:hover { background: #f5f5f5; }
+    .nav-tab.active { background: #1a73e8; color: white; }
+    .nav-tab.wishlist.active { background: #f59e0b; }
     .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; margin-bottom: 24px; }
     .stat-card { background: white; padding: 20px; border-radius: 12px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
     .stat-card .num { font-size: 32px; font-weight: 700; color: #1a73e8; }
     .stat-card .label { color: #666; font-size: 13px; margin-top: 4px; }
+    .stat-card.wishlist .num { color: #f59e0b; }
     .filters { background: white; padding: 16px; border-radius: 12px; margin-bottom: 20px; display: flex; gap: 12px; flex-wrap: wrap; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
     .filters select, .filters input { padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; }
     .filters label { font-size: 13px; color: #666; }
@@ -25,7 +31,9 @@
     .listing-card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08); transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; position: relative; }
     .listing-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.12); }
     .listing-card.followed { border: 2px solid #f59e0b; }
+    .listing-card.wishlist-item { border: 2px solid #8b5cf6; }
     .listing-image { height: 160px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 48px; position: relative; }
+    .listing-image.wishlist-bg { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); }
     .follow-btn { position: absolute; top: 10px; right: 10px; background: white; border: none; border-radius: 50%; width: 40px; height: 40px; cursor: pointer; font-size: 20px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.2); transition: transform 0.2s; }
     .follow-btn:hover { transform: scale(1.1); }
     .follow-btn.followed { background: #fef3c7; }
@@ -35,6 +43,7 @@
     .listing-info { font-size: 13px; color: #666; margin-bottom: 6px; }
     .listing-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
     .tag { padding: 4px 8px; background: #e8f0fe; color: #1a73e8; border-radius: 4px; font-size: 11px; }
+    .tag.wishlist-tag { background: #fef3c7; color: #d97706; }
     .price-tag { background: #fce8e6; color: #c5221f; padding: 6px 12px; border-radius: 8px; font-weight: 700; font-size: 18px; display: inline-block; margin-top: 10px; }
     .price-tag .unit { font-size: 12px; font-weight: 400; color: #666; }
     .empty { text-align: center; padding: 60px 20px; color: #999; }
@@ -63,6 +72,7 @@
     .history-change.down { color: #34a853; }
     .price-chart { margin: 16px 0; }
     .followed-badge { background: #f59e0b; color: white; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; }
+    .wishlist-badge { background: #8b5cf6; color: white; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; }
   </style>
 </head>
 <body>
@@ -86,6 +96,9 @@
       localStorage.setItem('lianjia_followed', JSON.stringify(ids));
     };
     
+    // Wishlist community names
+    const WISHLIST_COMMUNITIES = ['天山二村', '天山二村小区'];
+    
     function App() {
       const [listings, setListings] = useState([]);
       const [loading, setLoading] = useState(true);
@@ -94,11 +107,12 @@
       const [customMaxPrice, setCustomMaxPrice] = useState('');
       const [syncStatus, setSyncStatus] = useState('');
       const [uniqueNames, setUniqueNames] = useState([]);
-      const [stats, setStats] = useState({ total: 0, minPrice: 0, avgPrice: 0, snapshots: 0, followedCount: 0 });
+      const [stats, setStats] = useState({ total: 0, minPrice: 0, avgPrice: 0, snapshots: 0, followedCount: 0, wishlistCount: 0 });
       const [priceHistory, setPriceHistory] = useState(null);
       const [historyRange, setHistoryRange] = useState(30);
       const [showFollowedOnly, setShowFollowedOnly] = useState(false);
       const [followedIds, setFollowedIds] = useState(loadFollowed);
+      const [currentTab, setCurrentTab] = useState('all'); // 'all' or 'wishlist'
       
       const fetchListings = useCallback(async () => {
         setLoading(true);
@@ -151,6 +165,7 @@
           const latestListings = Object.values(latestByName).map(item => ({
             ...item,
             isFollowed: followedIds.includes(item.listing_id),
+            isWishlist: WISHLIST_COMMUNITIES.includes(item.name),
             priceStats: priceStats[item.listing_id] || { min: item.price, max: item.price, count: 1, history: [{ price: item.price, scraped_at: item.scraped_at }] }
           }));
           
@@ -159,8 +174,8 @@
           const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
           const avgPrice = prices.length > 0 ? Math.round(prices.reduce((a, b) => a + b, 0) / prices.length) : 0;
           
-          // Update followed status
           const followedListings = latestListings.filter(l => followedIds.includes(l.listing_id));
+          const wishlistListings = latestListings.filter(l => l.isWishlist);
           
           setStats({
             total: latestListings.length,
@@ -168,7 +183,8 @@
             avgPrice,
             snapshots: data.length,
             lastScrape: latestListings.length > 0 ? Math.max(...latestListings.map(l => new Date(l.scraped_at || l.created_at))) : null,
-            followedCount: followedListings.length
+            followedCount: followedListings.length,
+            wishlistCount: wishlistListings.length
           });
           
           setListings(latestListings);
@@ -219,6 +235,9 @@
       };
       
       const filteredListings = listings.filter(l => {
+        // Tab filter: wishlist vs all
+        if (currentTab === 'wishlist' && !l.isWishlist) return false;
+        
         // Followed filter
         if (showFollowedOnly && !followedIds.includes(l.listing_id)) return false;
         
@@ -273,6 +292,22 @@
             <p>实时监控上海长宁区二手房价格变化</p>
           </header>
           
+          {/* Navigation Tabs */}
+          <div className="nav-tabs">
+            <button 
+              className={`nav-tab ${currentTab === 'all' ? 'active' : ''}`}
+              onClick={() => setCurrentTab('all')}
+            >
+              🏠 全部房源
+            </button>
+            <button 
+              className={`nav-tab wishlist ${currentTab === 'wishlist' ? 'active' : ''}`}
+              onClick={() => setCurrentTab('wishlist')}
+            >
+              ⭐ 心愿单 {stats.wishlistCount > 0 && `(${stats.wishlistCount})`}
+            </button>
+          </div>
+          
           <div className="stats">
             <div className="stat-card">
               <div className="num">{stats.total}</div>
@@ -289,6 +324,10 @@
             <div className="stat-card">
               <div className="num" style={{color: '#f59e0b'}}>⭐ {stats.followedCount}</div>
               <div className="label">关注房源</div>
+            </div>
+            <div className="stat-card wishlist">
+              <div className="num" style={{color: '#8b5cf6'}}>💜 {stats.wishlistCount}</div>
+              <div className="label">心愿单</div>
             </div>
             <div className="stat-card">
               <div className="num">{stats.snapshots}</div>
@@ -337,20 +376,26 @@
             {lastUpdate && <div className="last-update">最后更新: {lastUpdate}</div>}
           </div>
           
+          {currentTab === 'wishlist' && (
+            <div style={{background: '#fef3c7', padding: '12px 16px', borderRadius: '8px', marginBottom: '20px', color: '#92400e', fontSize: '14px'}}>
+              💜 心愿单显示您关注的小区房源（目前：天山二村）
+            </div>
+          )}
+          
           {loading && listings.length === 0 ? (
             <div className="loading">
               <div>🔄 加载中...</div>
             </div>
           ) : sortedListings.length === 0 ? (
             <div className="empty">
-              <div className="empty-icon">🏠</div>
-              <div>{showFollowedOnly ? '暂无关注的房源' : '暂无符合条件的房源'}</div>
+              <div className="empty-icon">{currentTab === 'wishlist' ? '💜' : '🏠'}</div>
+              <div>{currentTab === 'wishlist' ? '心愿单暂无房源' : (showFollowedOnly ? '暂无关注的房源' : '暂无符合条件的房源')}</div>
             </div>
           ) : (
             <div className="listings">
               {sortedListings.map((listing, idx) => (
-                <div key={idx} className={`listing-card ${listing.isFollowed ? 'followed' : ''}`}>
-                  <div className="listing-image">
+                <div key={idx} className={`listing-card ${listing.isFollowed ? 'followed' : ''} ${listing.isWishlist ? 'wishlist-item' : ''}`}>
+                  <div className={`listing-image ${listing.isWishlist ? 'wishlist-bg' : ''}`}>
                     {listing.name ? listing.name.charAt(0) : '🏠'}
                     <button 
                       className={`follow-btn ${listing.isFollowed ? 'followed' : ''}`}
@@ -368,13 +413,14 @@
                       {listing.name || '未知小区'}
                     </a>
                     {listing.isFollowed && <span className="followed-badge">⭐ 已关注</span>}
+                    {listing.isWishlist && <span className="wishlist-badge">💜 心愿单</span>}
                     <div className="listing-info">📐 面积: {formatArea(listing.area)}</div>
                     <div className="listing-info">📍 板块: {listing.district || '-'}</div>
                     <div className="listing-info">🏢 楼层: {listing.floor || '-'} | {listing.year_build || '-'}年</div>
                     <div className="listing-info">💰 单价: {listing.unit_price || '-'}元/㎡</div>
                     <div className="listing-tags">
                       {(listing.tags || '').split(',').filter(t => t).map((tag, i) => (
-                        <span key={i} className="tag">{tag.trim()}</span>
+                        <span key={i} className={`tag ${listing.isWishlist ? 'wishlist-tag' : ''}`}>{tag.trim()}</span>
                       ))}
                     </div>
                     <div className="price-tag">
