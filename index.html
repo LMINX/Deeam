@@ -401,8 +401,8 @@
               {sortedListings.map((listing, idx) => (
                 <div key={idx} className={`listing-card ${listing.isFollowed ? 'followed' : ''} ${listing.isWishlist ? 'wishlist-item' : ''}`}>
                   <div className={`listing-image ${listing.isWishlist ? 'wishlist-bg' : ''}`}>
-                    <div className="floor-icon">🏠</div>
-                    <div className="room-info">{listing.area ? listing.area + '㎡' : '查看'}</div>
+                    <div className="floor-icon">{listing.name && listing.name.match(/\d+室\d+厅/) ? listing.name.match(/(\d+室\d+厅)/)[1] : '🏠'}</div>
+                    <div className="room-info">{listing.area ? (listing.name && listing.name.match(/\d+室\d+厅/) ? listing.name.match(/(\d+室\d+厅)/)[1] + ' · ' : '') + listing.area + '㎡' : '查看'}</div>
                     <button 
                       className={`follow-btn ${listing.isFollowed ? 'followed' : ''}`}
                       onClick={(e) => {
