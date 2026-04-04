@@ -33,8 +33,8 @@
     .listing-card.followed { border: 2px solid #f59e0b; }
     .listing-card.wishlist-item { border: 2px solid #8b5cf6; }
     .listing-image { height: 160px; background: linear-gradient(135deg, #1a73e8 0%, #0d47a1 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; position: relative; overflow: hidden; }
-    .listing-image .floor-icon { font-size: 56px; margin-bottom: 8px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); }
-    .listing-image .room-info { font-size: 14px; font-weight: 600; background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 12px; }
+    .listing-image .floor-icon { width: 80px; height: 60px; margin-bottom: 6px; }
+    .listing-image .room-info { font-size: 13px; font-weight: 600; background: rgba(255,255,255,0.2); padding: 3px 10px; border-radius: 10px; }
     .listing-image.wishlist-bg { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); }
     .follow-btn { position: absolute; top: 10px; right: 10px; background: white; border: none; border-radius: 50%; width: 40px; height: 40px; cursor: pointer; font-size: 20px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.2); transition: transform 0.2s; }
     .follow-btn:hover { transform: scale(1.1); }
@@ -100,6 +100,67 @@
     
     // Wishlist community names
     const WISHLIST_COMMUNITIES = ['天山二村', '天山二村小区'];
+    
+    // Floor plan SVG icon component
+    function FloorPlanIcon({ layout }) {
+      // Parse layout like "2室1厅" or "3室2厅"
+      const match = layout ? layout.match(/(\d+)室(\d+)厅/) : null;
+      const rooms = match ? parseInt(match[1]) : 0;
+      const halls = match ? parseInt(match[2]) : 0;
+      
+      // Default house icon
+      if (!match) {
+        return (
+          <svg viewBox="0 0 80 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="10" y="15" width="60" height="40" rx="4" fill="white" fillOpacity="0.9" stroke="white" strokeWidth="2"/>
+            <rect x="30" y="35" width="20" height="20" rx="2" fill="#1a73e8" fillOpacity="0.6"/>
+            <text x="40" y="25" textAnchor="middle" fill="white" fontSize="12" fontWeight="bold">🏠</text>
+          </svg>
+        );
+      }
+      
+      // Build SVG rooms dynamically
+      const roomWidth = 22;
+      const roomHeight = 18;
+      const hallWidth = 28;
+      const hallHeight = 22;
+      const gap = 3;
+      const startX = 5;
+      const startY = 8;
+      
+      const elements = [];
+      let currentX = startX;
+      
+      // Add bedrooms (smaller rooms)
+      for (let i = 0; i < rooms; i++) {
+        elements.push(
+          <g key={`room-${i}`}>
+            <rect x={currentX} y={startY} width={roomWidth} height={roomHeight} rx="3" fill="white" fillOpacity="0.9" stroke="white" strokeWidth="1.5"/>
+            <text x={currentX + roomWidth/2} y={startY + roomHeight/2 + 4} textAnchor="middle" fill="#1a73e8" fontSize="8" fontWeight="bold">卧</text>
+          </g>
+        );
+        currentX += roomWidth + gap;
+      }
+      
+      // Add living rooms (larger rooms) on second row
+      currentX = startX;
+      const row2Y = startY + roomHeight + gap + 5;
+      for (let i = 0; i < halls; i++) {
+        elements.push(
+          <g key={`hall-${i}`}>
+            <rect x={currentX} y={row2Y} width={hallWidth} height={hallHeight} rx="3" fill="white" fillOpacity="0.9" stroke="white" strokeWidth="1.5"/>
+            <text x={currentX + hallWidth/2} y={row2Y + hallHeight/2 + 4} textAnchor="middle" fill="#f59e0b" fontSize="9" fontWeight="bold">厅</text>
+          </g>
+        );
+        currentX += hallWidth + gap;
+      }
+      
+      return (
+        <svg viewBox="0 0 80 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+          {elements}
+        </svg>
+      );
+    }
     
     function App() {
       const [listings, setListings] = useState([]);
@@ -401,7 +462,7 @@
               {sortedListings.map((listing, idx) => (
                 <div key={idx} className={`listing-card ${listing.isFollowed ? 'followed' : ''} ${listing.isWishlist ? 'wishlist-item' : ''}`}>
                   <div className={`listing-image ${listing.isWishlist ? 'wishlist-bg' : ''}`}>
-                    <div className="floor-icon">{listing.name && listing.name.match(/\d+室\d+厅/) ? listing.name.match(/(\d+室\d+厅)/)[1] : '🏠'}</div>
+                    <FloorPlanIcon layout={listing.name && listing.name.match(/\d+室\d+厅/) ? listing.name.match(/(\d+室\d+厅)/)[1] : null} />
                     <div className="room-info">{listing.area ? (listing.name && listing.name.match(/\d+室\d+厅/) ? listing.name.match(/(\d+室\d+厅)/)[1] + ' · ' : '') + listing.area + '㎡' : '查看'}</div>
                     <button 
                       className={`follow-btn ${listing.isFollowed ? 'followed' : ''}`}
