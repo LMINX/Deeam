@@ -101,63 +101,36 @@
     // Wishlist community names
     const WISHLIST_COMMUNITIES = ['天山二村', '天山二村小区'];
     
-    // Floor plan SVG icon component
+    // Floor plan image component
+    const FLOORPLAN_IMAGES = {
+      '1室0厅': 'https://raw.githubusercontent.com/LMINX/Deeam/main/floorplans/floorplan-1shi0ting.png',
+      '1室1厅': 'https://raw.githubusercontent.com/LMINX/Deeam/main/floorplans/floorplan-1shi1ting.png',
+      '2室1厅': 'https://raw.githubusercontent.com/LMINX/Deeam/main/floorplans/floorplan-2shi1ting.png',
+      '2室2厅': 'https://raw.githubusercontent.com/LMINX/Deeam/main/floorplans/floorplan-2shi2ting.png',
+      '3室1厅': 'https://raw.githubusercontent.com/LMINX/Deeam/main/floorplans/floorplan-3shi1ting.png',
+      '3室2厅': 'https://raw.githubusercontent.com/LMINX/Deeam/main/floorplans/floorplan-3shi2ting.png',
+      '3室3厅': 'https://raw.githubusercontent.com/LMINX/Deeam/main/floorplans/floorplan-3shi3ting.png',
+      '4室1厅': 'https://raw.githubusercontent.com/LMINX/Deeam/main/floorplans/floorplan-4shi1ting.png',
+      '4室2厅': 'https://raw.githubusercontent.com/LMINX/Deeam/main/floorplans/floorplan-4shi2ting.png',
+      '4室3厅': 'https://raw.githubusercontent.com/LMINX/Deeam/main/floorplans/floorplan-4shi3ting.png',
+      '4室4厅': 'https://raw.githubusercontent.com/LMINX/Deeam/main/floorplans/floorplan-4shi4ting.png',
+    };
+    
     function FloorPlanIcon({ layout }) {
-      // Parse layout like "2室1厅" or "3室2厅"
       const match = layout ? layout.match(/(\d+)室(\d+)厅/) : null;
-      const rooms = match ? parseInt(match[1]) : 0;
-      const halls = match ? parseInt(match[2]) : 0;
+      const layoutKey = match ? match[0] : null;
+      const imageUrl = layoutKey ? FLOORPLAN_IMAGES[layoutKey] : null;
+      
+      if (imageUrl) {
+        return <img src={imageUrl} alt={layoutKey} style={{ width: 80, height: 80, objectFit: 'contain' }} />;
+      }
       
       // Default house icon
-      if (!match) {
-        return (
-          <svg viewBox="0 0 80 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="10" y="15" width="60" height="40" rx="4" fill="white" fillOpacity="0.9" stroke="white" strokeWidth="2"/>
-            <rect x="30" y="35" width="20" height="20" rx="2" fill="#1a73e8" fillOpacity="0.6"/>
-            <text x="40" y="25" textAnchor="middle" fill="white" fontSize="12" fontWeight="bold">🏠</text>
-          </svg>
-        );
-      }
-      
-      // Build SVG rooms dynamically
-      const roomWidth = 22;
-      const roomHeight = 18;
-      const hallWidth = 28;
-      const hallHeight = 22;
-      const gap = 3;
-      const startX = 5;
-      const startY = 8;
-      
-      const elements = [];
-      let currentX = startX;
-      
-      // Add bedrooms (smaller rooms)
-      for (let i = 0; i < rooms; i++) {
-        elements.push(
-          <g key={`room-${i}`}>
-            <rect x={currentX} y={startY} width={roomWidth} height={roomHeight} rx="3" fill="white" fillOpacity="0.9" stroke="white" strokeWidth="1.5"/>
-            <text x={currentX + roomWidth/2} y={startY + roomHeight/2 + 4} textAnchor="middle" fill="#1a73e8" fontSize="8" fontWeight="bold">卧</text>
-          </g>
-        );
-        currentX += roomWidth + gap;
-      }
-      
-      // Add living rooms (larger rooms) on second row
-      currentX = startX;
-      const row2Y = startY + roomHeight + gap + 5;
-      for (let i = 0; i < halls; i++) {
-        elements.push(
-          <g key={`hall-${i}`}>
-            <rect x={currentX} y={row2Y} width={hallWidth} height={hallHeight} rx="3" fill="white" fillOpacity="0.9" stroke="white" strokeWidth="1.5"/>
-            <text x={currentX + hallWidth/2} y={row2Y + hallHeight/2 + 4} textAnchor="middle" fill="#f59e0b" fontSize="9" fontWeight="bold">厅</text>
-          </g>
-        );
-        currentX += hallWidth + gap;
-      }
-      
       return (
-        <svg viewBox="0 0 80 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-          {elements}
+        <svg viewBox="0 0 80 60" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: 80, height: 60 }}>
+          <rect x="10" y="15" width="60" height="40" rx="4" fill="white" fillOpacity="0.9" stroke="white" strokeWidth="2"/>
+          <rect x="30" y="35" width="20" height="20" rx="2" fill="#1a73e8" fillOpacity="0.6"/>
+          <text x="40" y="25" textAnchor="middle" fill="white" fontSize="12" fontWeight="bold">🏠</text>
         </svg>
       );
     }
