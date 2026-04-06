@@ -61,7 +61,7 @@
     .history-btn { background: #ff9800; color: white; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 11px; margin-left: 8px; }
     .history-btn:hover { background: #f57c00; }
     .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 1000; }
-    .modal-content { background: white; border-radius: 16px; padding: 24px; max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto; }
+    .modal-content { background: white; border-radius: 16px; padding: 24px; max-width: 800px; width: 95%; max-height: 85vh; overflow-y: auto; }
     .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
     .modal-title { font-size: 18px; font-weight: 700; color: #333; }
     .modal-close { background: none; border: none; font-size: 24px; cursor: pointer; color: #999; }
@@ -559,16 +559,16 @@
                   <div style={{fontSize:'13px', color:'#666', marginBottom:'16px'}}>
                     共 {displayHistory.length} 条记录 {historyRange < 100 && `（最近${historyRange}天）`}
                   </div>
-                  <svg width="100%" height="180" viewBox="0 0 400 180" preserveAspectRatio="xMidYMid meet">
+                  <svg width="100%" height="200" viewBox="0 0 800 200" preserveAspectRatio="xMidYMid meet">
                     {(() => {
-                      const chartHeight = 130;
+                      const chartHeight = 140;
                       const chartTop = 20;
                       const chartBottom = chartHeight + chartTop;
-                      const chartLeft = 50;
-                      const chartRight = 380;
+                      const chartLeft = 60;
+                      const chartRight = 740;
                       const barCount = displayHistory.length;
                       const barAreaWidth = chartRight - chartLeft;
-                      const barWidth = Math.min(30, (barAreaWidth / barCount) - 4);
+                      const barWidth = Math.min(40, (barAreaWidth / barCount) - 4);
                       const priceRange = maxP - minP || 1;
                       
                       const yLabels = [];
