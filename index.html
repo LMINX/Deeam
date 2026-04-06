@@ -506,7 +506,7 @@
             };
             const cutoff = getCutoff();
             const filteredHistory = priceHistory.history.filter(h => new Date(h.scraped_at) >= cutoff);
-            const displayHistory = filteredHistory.length > 0 ? filteredHistory : priceHistory.history;
+            const displayHistory = (historyRange === 999 && filteredHistory.length === 0) ? priceHistory.history : filteredHistory;
             
             const prices = displayHistory.map(h => parseFloat(h.price));
             const minP = prices.length > 0 ? Math.min(...prices) : 0;
