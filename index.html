@@ -584,6 +584,19 @@
                         return {x, y, price: h.price, date: h.scraped_at};
                       });
                       
+                      // 格式化日期：同一天只显示首次日期，后续只显示时间
+                      let lastDateStr = '';
+                      const formatDate = (dateStr) => {
+                        const d = new Date(dateStr);
+                        const datePart = d.toLocaleString('en-GB', {timeZone:'Europe/London', month:'2-digit', day:'2-digit'});
+                        const timePart = d.toLocaleString('en-GB', {timeZone:'Europe/London', hour:'2-digit', minute:'2-digit', hour12:false});
+                        if (datePart !== lastDateStr) {
+                          lastDateStr = datePart;
+                          return `${datePart.split('/').join('.')} ${timePart}`;
+                        }
+                        return timePart;
+                      };
+                      
                       const linePath = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
                       
                       return (
@@ -609,7 +622,7 @@
                                   rx="4"
                                 />
                                 <text x={p.x} y={chartBottom + 14} textAnchor="middle" fontSize="9" fill="#666">
-                                  {new Date(p.date).toLocaleString('en-GB', {timeZone:'Europe/London', month:'numeric', day:'numeric'}).split('/').join('.')}
+                                  {formatDate(p.date)}
                                 </text>
                                 <text x={p.x} y={chartBottom - barHeight - 5} textAnchor="middle" fontSize="9" fontWeight="600" fill="#333">
                                   {p.price}
