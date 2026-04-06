@@ -496,15 +496,7 @@
           {/* Price History Modal */}
           {priceHistory && (() => {
             const now = new Date();
-            const getCutoff = () => {
-              if (historyRange === 1) {
-                // 今天：从今天0点开始
-                return new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
-              }
-              // 其他天数：从N天前的0点开始
-              return new Date(now.getFullYear(), now.getMonth(), now.getDate() - historyRange, 0, 0, 0, 0);
-            };
-            const cutoff = getCutoff();
+            const cutoff = new Date(now.getTime() - historyRange * 24 * 60 * 60 * 1000);
             const filteredHistory = priceHistory.history.filter(h => new Date(h.scraped_at) >= cutoff);
             const displayHistory = filteredHistory.length > 0 ? filteredHistory : priceHistory.history;
             
