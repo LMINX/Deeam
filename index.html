@@ -275,11 +275,11 @@
       };
       
       const filteredListings = listings.filter(l => {
-        // Tab filter: wishlist vs all
-        if (currentTab === 'wishlist' && !l.isWishlist) return false;
+        // Tab filter: wishlist (followed listings) vs all
+        if (currentTab === 'wishlist' && !followedIds.includes(l.listing_id)) return false;
         
-        // Followed filter
-        if (showFollowedOnly && !followedIds.includes(l.listing_id)) return false;
+        // Followed filter - only applies to 'all' tab
+        if (showFollowedOnly && currentTab !== 'wishlist' && !followedIds.includes(l.listing_id)) return false;
         
         const price = parseFloat(l.price);
         // Don't filter wishlist items by max price
@@ -345,7 +345,7 @@
               className={`nav-tab wishlist ${currentTab === 'wishlist' ? 'active' : ''}`}
               onClick={() => setCurrentTab('wishlist')}
             >
-              ⭐ 心愿单 {stats.wishlistCount > 0 && `(${stats.wishlistCount})`}
+              ⭐ 我的关注 {stats.followedCount > 0 && `(${stats.followedCount})`}
             </button>
           </div>
           
@@ -368,7 +368,7 @@
             </div>
             <div className="stat-card wishlist">
               <div className="num" style={{color: '#8b5cf6'}}>💜 {stats.wishlistCount}</div>
-              <div className="label">心愿单</div>
+              <div className="label">心愿单(小区)</div>
             </div>
             <div className="stat-card">
               <div className="num">{stats.snapshots}</div>
@@ -418,8 +418,8 @@
           </div>
           
           {currentTab === 'wishlist' && (
-            <div style={{background: '#fef3c7', padding: '12px 16px', borderRadius: '8px', marginBottom: '20px', color: '#92400e', fontSize: '14px'}}>
-              💜 心愿单显示您关注的小区房源（目前：天山二村）
+            <div style={{background: 'linear-gradient(135deg, #fef3c7, #fde68a)', padding: '12px 16px', borderRadius: '8px', marginBottom: '20px', color: '#92400e', fontSize: '14px'}}>
+              ⭐ 您关注的房源列表（共 {stats.followedCount} 套）— 点击卡片上的 ⭐ 可取消关注
             </div>
           )}
           
