@@ -111,6 +111,78 @@
     const SUPABASE_URL = 'https://zojmkzwhyoxowssxkoko.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpvam1rendoeW94b3dzc3hrb2tvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ3MzY4ODIsImV4cCI6MjA5MDMxMjg4Mn0.1vrlQlyL6kQ63Rc3G_otmTwIcqpGrQnZaFFMMou7bcE';
     
+    // Generate UUID v4
+    const generateUUID = () => {
+      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+        const r = Math.random() * 16 | 0;
+        const v = c === 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+      });
+    };
+
+    // Get or create visitor ID from localStorage
+    const getVisitorId = () => {
+      try {
+        let id = localStorage.getItem('deeam_visitor_id');
+        if (!id) {
+          id = generateUUID();
+          localStorage.setItem('deeam_visitor_id', id);
+        }
+        return id;
+      } catch { return null; }
+    };
+
+    // Get today's date string (YYYY-MM-DD in local time)
+    const getTodayStr = () => {
+      const now = new Date();
+      return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    };
+
+    // Record today's visit and return today's total visitor count
+    const recordAndGetTodayCount = async () => {
+      const visitorId = getVisitorId();
+      const todayStr = getTodayStr();
+
+      // Try to upsert today's visit for this visitor
+      try {
+        await fetch(`${SUPABASE_URL}/rest/v1/daily_visitors`, {
+          method: 'POST',
+          headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+            'Content-Type': 'application/json',
+            'Prefer': 'resolution=merge-duplicates'
+          },
+          body: JSON.stringify([{
+            visitor_id: visitorId,
+            visited_date: todayStr
+          }])
+        });
+      } catch (e) {
+        console.error('Failed to record visit:', e);
+      }
+
+      // Get today's total unique visitors
+      try {
+        const res = await fetch(
+          `${SUPABASE_URL}/rest/v1/daily_visitors?visited_date=eq.${todayStr}&select=visitor_id`,
+          {
+            headers: {
+              'apikey': SUPABASE_ANON_KEY,
+              'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+            }
+          }
+        );
+        if (res.ok) {
+          const data = await res.json();
+          return data.length;
+        }
+      } catch (e) {
+        console.error('Failed to get today count:', e);
+      }
+      return null;
+    };
+
     // Load followed IDs from localStorage
     const loadFollowed = () => {
       try {
@@ -339,6 +411,7 @@
       const [showFollowedOnly, setShowFollowedOnly] = useState(false);
       const [followedIds, setFollowedIds] = useState(loadFollowed);
       const [currentTab, setCurrentTab] = useState('all'); // 'all' or 'wishlist'
+      const [todayVisitors, setTodayVisitors] = useState(null);
       
       const fetchListings = useCallback(async () => {
         setLoading(true);
@@ -428,6 +501,9 @@
       
       useEffect(() => {
         fetchListings();
+        recordAndGetTodayCount().then(count => {
+          if (count !== null) setTodayVisitors(count);
+        });
         fetch(`${SUPABASE_URL}/rest/v1/config?key=eq.max_price`, {
           headers: {
             'apikey': SUPABASE_ANON_KEY,
@@ -520,6 +596,11 @@
           <header>
             <h1>🏠 长宁链家房价追踪器</h1>
             <p>实时监控上海长宁区二手房价格变化</p>
+            {todayVisitors !== null && (
+              <p style={{marginTop: '8px', fontSize: '15px', opacity: 0.95}}>
+                👥 今日访问: <strong>{todayVisitors}</strong> 人
+              </p>
+            )}
           </header>
           
           {/* Navigation Tabs */}
