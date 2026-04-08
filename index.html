@@ -59,8 +59,13 @@
     footer { text-align: center; padding: 40px 20px; color: #999; font-size: 12px; }
     .price-range { background: #e8f5e9; color: #2e7d32; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; margin-top: 6px; display: inline-block; }
     .history-btn { background: #ff9800; color: white; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 11px; margin-left: 8px; }
-    .history-btn:hover { background: #f57c00; }
-    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+    .verify-btn { background: #10b981; color: white; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 11px; margin-left: 8px; }
+    .verify-btn:hover { background: #059669; }
+    .verify-btn.verifying { background: #6b7280; cursor: wait; }
+    .verify-btn.verified-ok { background: #34a853; }
+    .verify-btn.verified-fail { background: #ea4335; }
+    .listing-url-status { font-size: 11px; margin-left: 8px; }
+  </style> { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 1000; }
     .modal-content { background: white; border-radius: 16px; padding: 24px; max-width: 800px; width: 95%; max-height: 85vh; overflow-y: auto; }
     .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
     .modal-title { font-size: 18px; font-weight: 700; color: #333; }
@@ -423,7 +428,9 @@
       const [todayVisitors, setTodayVisitors] = useState(null);
       const [weather, setWeather] = useState(null); // { temp, feelsLike, condition, windSpeed, humidity, emoji }
       const [weatherLoading, setWeatherLoading] = useState(false);
+      const [verificationStates, setVerificationStates] = useState({}); // { [listing_id]: 'verifying' | 'ok' | 'fail' | null }
       
+      // Verify a listing URL using fetch HEAD request
       const fetchListings = useCallback(async () => {
         setLoading(true);
         try {
@@ -650,8 +657,11 @@
         return true;
       });
       
-      // Sort: followed first, then by price
+      // Sort: tianshan2cun first, then followed, then by price
       const sortedListings = [...filteredListings].sort((a, b) => {
+        const aIsTianshan = a.name && a.name.includes('天山二村');
+        const bIsTianshan = b.name && b.name.includes('天山二村');
+        if (aIsTianshan !== bIsTianshan) return bIsTianshan ? 1 : -1;
         if (a.isFollowed !== b.isFollowed) return b.isFollowed ? 1 : -1;
         return parseFloat(a.price) - parseFloat(b.price);
       });
@@ -681,6 +691,35 @@
         }
       };
       
+      // Verify a single listing URL using fetch
+      const verifyListingUrl = async (listing) => {
+        if (!listing.url) return;
+        setVerificationStates(prev => ({ ...prev, [listing.listing_id]: 'verifying' }));
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 8000);
+          const res = await fetch(listing.url, {
+            method: 'HEAD',
+            signal: controller.signal,
+            mode: 'no-cors'
+          });
+          clearTimeout(timeoutId);
+          // no-cors: if no error thrown, URL is reachable
+          setVerificationStates(prev => ({ ...prev, [listing.listing_id]: 'ok' }));
+        } catch {
+          // Try GET as fallback
+          try {
+            const controller2 = new AbortController();
+            const timeoutId2 = setTimeout(() => controller2.abort(), 8000);
+            await fetch(listing.url, { method: 'GET', signal: controller2.signal, mode: 'no-cors' });
+            clearTimeout(timeoutId2);
+            setVerificationStates(prev => ({ ...prev, [listing.listing_id]: 'ok' }));
+          } catch {
+            setVerificationStates(prev => ({ ...prev, [listing.listing_id]: 'fail' }));
+          }
+        }
+      };
+
       const formatArea = (area) => area ? `${area}㎡` : '-';
       
       return (
@@ -866,6 +905,15 @@
                           📊 {listing.priceStats.min}万 - {listing.priceStats.max}万
                         </span>
                         <button className="history-btn" onClick={() => setPriceHistory({
+                      {/* Verify Button */}
+                      <button
+                        className={`verify-btn ${verificationStates[listing.listing_id] === 'verifying' ? 'verifying' : ''} ${verificationStates[listing.listing_id] === 'ok' ? 'verified-ok' : ''} ${verificationStates[listing.listing_id] === 'fail' ? 'verified-fail' : ''}`}
+                        onClick={(e) => { e.stopPropagation(); verifyListingUrl(listing); }}
+                        disabled={verificationStates[listing.listing_id] === 'verifying'}
+                        title="验证链接是否有效"
+                      >
+                        {verificationStates[listing.listing_id] === 'verifying' ? '验证中...' : verificationStates[listing.listing_id] === 'ok' ? '有效' : verificationStates[listing.listing_id] === 'fail' ? '已下架' : '验证'}
+                      </button>
                           name: listing.name,
                           listing_id: listing.listing_id,
                           ...listing.priceStats
