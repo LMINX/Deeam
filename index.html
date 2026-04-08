@@ -100,6 +100,15 @@
     .guestbook-success { background: #ecfdf5; border: 1px solid #a7f3d0; color: #065f46; padding: 10px 16px; border-radius: 10px; font-size: 13px; margin-bottom: 16px; text-align: center; }
     .guestbook-error { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 10px 16px; border-radius: 10px; font-size: 13px; margin-bottom: 16px; text-align: center; }
     .guestbook-count { font-size: 13px; color: #6b7280; margin-bottom: 16px; }
+    .weather-widget { display: inline-flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.25); backdrop-filter: blur(6px); border-radius: 16px; padding: 8px 16px; margin-top: 12px; font-size: 14px; color: white; border: 1px solid rgba(255,255,255,0.3); }
+    .weather-widget .weather-emoji { font-size: 24px; }
+    .weather-widget .weather-info { display: flex; flex-direction: column; gap: 2px; }
+    .weather-widget .weather-temp { font-weight: 700; font-size: 16px; }
+    .weather-widget .weather-detail { font-size: 12px; opacity: 0.9; }
+    .weather-refresh { background: rgba(255,255,255,0.2); border: none; border-radius: 50%; width: 28px; height: 28px; cursor: pointer; font-size: 12px; display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
+    .weather-refresh:hover { background: rgba(255,255,255,0.35); }
+    .weather-refresh.spinning { animation: spin 1s linear infinite; }
+    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
   </style>
 </head>
 <body>
@@ -412,6 +421,8 @@
       const [followedIds, setFollowedIds] = useState(loadFollowed);
       const [currentTab, setCurrentTab] = useState('all'); // 'all' or 'wishlist'
       const [todayVisitors, setTodayVisitors] = useState(null);
+      const [weather, setWeather] = useState(null); // { temp, feelsLike, condition, windSpeed, humidity, emoji }
+      const [weatherLoading, setWeatherLoading] = useState(false);
       
       const fetchListings = useCallback(async () => {
         setLoading(true);
@@ -499,8 +510,89 @@
         }
       }, [followedIds]);
       
+      // Fetch Shanghai weather
+      const fetchWeather = useCallback(async () => {
+        setWeatherLoading(true);
+        try {
+          const res = await fetch('https://wttr.in/Shanghai?format=j1');
+          if (!res.ok) throw new Error('weather fetch failed');
+          const data = await res.json();
+          const current = data.current_condition[0];
+          const tempC = current.temp_C;
+          const feelsLike = current.FeelsLikeC;
+          const windKmph = current.windspeedKmph;
+          const humidity = current.humidity;
+          const weatherCode = current.weatherCode;
+          const desc = current.weatherDesc[0].value;
+          // Map weather code to emoji and label
+          const weatherMap = {
+            '113': { emoji: '☀️', label: '晴天' },
+            '116': { emoji: '⛅', label: '多云' },
+            '119': { emoji: '☁️', label: '阴天' },
+            '122': { emoji: '☁️', label: '阴天' },
+            '143': { emoji: '🌫️', label: '雾' },
+            '176': { emoji: '🌦️', label: '阵雨' },
+            '179': { emoji: '🌨️', label: '阵雪' },
+            '182': { emoji: '🌨️', label: '阵雪' },
+            '185': { emoji: '🌨️', label: '冻雨' },
+            '200': { emoji: '⛈️', label: '雷暴' },
+            '227': { emoji: '🌨️', label: '风雪' },
+            '230': { emoji: '❄️', label: '大雪' },
+            '248': { emoji: '🌫️', label: '雾' },
+            '260': { emoji: '🌫️', label: '雾' },
+            '263': { emoji: '🌧️', label: '小雨' },
+            '266': { emoji: '🌧️', label: '小雨' },
+            '281': { emoji: '🌨️', label: '雨夹雪' },
+            '284': { emoji: '🌨️', label: '雨夹雪' },
+            '293': { emoji: '🌧️', label: '小雨' },
+            '296': { emoji: '🌧️', label: '中雨' },
+            '299': { emoji: '🌧️', label: '中雨' },
+            '302': { emoji: '🌧️', label: '大雨' },
+            '305': { emoji: '🌧️', label: '大雨' },
+            '308': { emoji: '🌧️', label: '暴雨' },
+            '311': { emoji: '🌨️', label: '雨夹雪' },
+            '314': { emoji: '🌨️', label: '雨夹雪' },
+            '317': { emoji: '🌨️', label: '小雪' },
+            '320': { emoji: '🌨️', label: '中雪' },
+            '323': { emoji: '🌨️', label: '小雪' },
+            '326': { emoji: '🌨️', label: '小雪' },
+            '329': { emoji: '❄️', label: '大雪' },
+            '332': { emoji: '❄️', label: '大雪' },
+            '335': { emoji: '🌨️', label: '阵雪' },
+            '338': { emoji: '❄️', label: '冻雪' },
+            '350': { emoji: '🌨️', label: '冰粒' },
+            '353': { emoji: '🌦️', label: '阵雨' },
+            '356': { emoji: '🌧️', label: '大雨' },
+            '359': { emoji: '🌧️', label: '暴雨' },
+            '362': { emoji: '🌨️', label: '阵雨夹雪' },
+            '365': { emoji: '🌨️', label: '小冰雹' },
+            '368': { emoji: '🌨️', label: '小雪' },
+            '371': { emoji: '❄️', label: '大雪' },
+            '386': { emoji: '⛈️', label: '雷阵雨' },
+            '389': { emoji: '⛈️', label: '雷暴雨' },
+            '392': { emoji: '⛈️', label: '雷阵雪' },
+            '395': { emoji: '⛈️', label: '雷暴大雪' },
+          };
+          const mapped = weatherMap[weatherCode] || { emoji: '🌡️', label: desc };
+          setWeather({
+            temp: tempC,
+            feelsLike,
+            windSpeed: windKmph,
+            humidity,
+            condition: mapped.label,
+            emoji: mapped.emoji,
+            desc,
+          });
+        } catch (e) {
+          console.error('Weather fetch error:', e);
+        } finally {
+          setWeatherLoading(false);
+        }
+      }, []);
+
       useEffect(() => {
         fetchListings();
+        fetchWeather();
         recordAndGetTodayCount().then(count => {
           if (count !== null) setTodayVisitors(count);
         });
@@ -601,6 +693,27 @@
                 👥 今日访问: <strong>{todayVisitors}</strong> 人
               </p>
             )}
+            {/* Shanghai Weather Widget */}
+            <div className="weather-widget">
+              {weatherLoading ? (
+                <span>🔄 加载天气...</span>
+              ) : weather ? (
+                <>
+                  <span className="weather-emoji">{weather.emoji}</span>
+                  <div className="weather-info">
+                    <span className="weather-temp">上海 {weather.temp}°C（体感 {weather.feelsLike}°C）</span>
+                    <span className="weather-detail">{weather.condition} · 风速 {weather.windSpeed}km/h · 湿度 {weather.humidity}%</span>
+                  </div>
+                  <button
+                    className={`weather-refresh ${weatherLoading ? 'spinning' : ''}`}
+                    onClick={fetchWeather}
+                    title="刷新天气"
+                  >🔄</button>
+                </>
+              ) : (
+                <button className="weather-refresh" onClick={fetchWeather} title="加载天气">🌤️</button>
+              )}
+            </div>
           </header>
           
           {/* Navigation Tabs */}
