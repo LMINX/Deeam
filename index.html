@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🏠 长宁链家房价追踪器</title>
+  <title>≡ƒÅá Θò┐σ«üΘô╛σ«╢µê┐Σ╗╖Φ┐╜Φ╕¬σÖ¿</title>
   <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -210,25 +210,25 @@
     };
     
     // Wishlist community names
-    const WISHLIST_COMMUNITIES = ['天山二村', '天山二村小区'];
+    const WISHLIST_COMMUNITIES = ['σñ⌐σ▒▒Σ║îµ¥æ', 'σñ⌐σ▒▒Σ║îµ¥æσ░Åσî║'];
     
     // Floor plan image component (from Gemini Moody style)
     const FLOORPLAN_IMAGES = {
-      '1室0厅': 'https://raw.githubusercontent.com/LMINX/Deeam/main/floorplans/1shi0ting.png',
-      '1室1厅': 'https://raw.githubusercontent.com/LMINX/Deeam/main/floorplans/1shi1ting.png',
-      '2室1厅': 'https://raw.githubusercontent.com/LMINX/Deeam/main/floorplans/2shi1ting.png',
-      '2室2厅': 'https://raw.githubusercontent.com/LMINX/Deeam/main/floorplans/2shi2ting.png',
-      '3室1厅': 'https://raw.githubusercontent.com/LMINX/Deeam/main/floorplans/3shi1ting.png',
-      '3室2厅': 'https://raw.githubusercontent.com/LMINX/Deeam/main/floorplans/3shi2ting.png',
-      '3室3厅': 'https://raw.githubusercontent.com/LMINX/Deeam/main/floorplans/3shi3ting.png',
-      '4室1厅': 'https://raw.githubusercontent.com/LMINX/Deeam/main/floorplans/4shi1ting.png',
-      '4室2厅': 'https://raw.githubusercontent.com/LMINX/Deeam/main/floorplans/4shi2ting.png',
-      '4室3厅': 'https://raw.githubusercontent.com/LMINX/Deeam/main/floorplans/4shi3ting.png',
-      '4室4厅': 'https://raw.githubusercontent.com/LMINX/Deeam/main/floorplans/4shi4ting.png',
+      '1σ«ñ0σÄà': 'https://raw.githubusercontent.com/LMINX/Deeam/main/floorplans/1shi0ting.png',
+      '1σ«ñ1σÄà': 'https://raw.githubusercontent.com/LMINX/Deeam/main/floorplans/1shi1ting.png',
+      '2σ«ñ1σÄà': 'https://raw.githubusercontent.com/LMINX/Deeam/main/floorplans/2shi1ting.png',
+      '2σ«ñ2σÄà': 'https://raw.githubusercontent.com/LMINX/Deeam/main/floorplans/2shi2ting.png',
+      '3σ«ñ1σÄà': 'https://raw.githubusercontent.com/LMINX/Deeam/main/floorplans/3shi1ting.png',
+      '3σ«ñ2σÄà': 'https://raw.githubusercontent.com/LMINX/Deeam/main/floorplans/3shi2ting.png',
+      '3σ«ñ3σÄà': 'https://raw.githubusercontent.com/LMINX/Deeam/main/floorplans/3shi3ting.png',
+      '4σ«ñ1σÄà': 'https://raw.githubusercontent.com/LMINX/Deeam/main/floorplans/4shi1ting.png',
+      '4σ«ñ2σÄà': 'https://raw.githubusercontent.com/LMINX/Deeam/main/floorplans/4shi2ting.png',
+      '4σ«ñ3σÄà': 'https://raw.githubusercontent.com/LMINX/Deeam/main/floorplans/4shi3ting.png',
+      '4σ«ñ4σÄà': 'https://raw.githubusercontent.com/LMINX/Deeam/main/floorplans/4shi4ting.png',
     };
     
     function FloorPlanIcon({ layout }) {
-      const match = layout ? layout.match(/(\d+)室(\d+)厅/) : null;
+      const match = layout ? layout.match(/(\d+)σ«ñ(\d+)σÄà/) : null;
       const layoutKey = match ? match[0] : null;
       const imageUrl = layoutKey ? FLOORPLAN_IMAGES[layoutKey] : null;
       
@@ -241,7 +241,7 @@
         <svg viewBox="0 0 80 60" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: 80, height: 60 }}>
           <rect x="10" y="15" width="60" height="40" rx="4" fill="white" fillOpacity="0.9" stroke="white" strokeWidth="2"/>
           <rect x="30" y="35" width="20" height="20" rx="2" fill="#1a73e8" fillOpacity="0.6"/>
-          <text x="40" y="25" textAnchor="middle" fill="white" fontSize="12" fontWeight="bold">🏠</text>
+          <text x="40" y="25" textAnchor="middle" fill="white" fontSize="12" fontWeight="bold">≡ƒÅá</text>
         </svg>
       );
     }
@@ -296,7 +296,7 @@
       const handleSubmit = async (e) => {
         e.preventDefault();
         if (!nickname.trim() || !message.trim()) {
-          setStatus({ type: 'error', text: '请填写昵称和留言内容' });
+          setStatus({ type: 'error', text: 'Φ»╖σí½σåÖµÿ╡τº░σÆîτòÖΦ¿Çσåàσ«╣' });
           return;
         }
         setSubmitting(true);
@@ -319,11 +319,11 @@
           if (!res.ok) throw new Error('Failed to post');
           localStorage.setItem('guestbook_nickname', nickname.trim());
           setMessage('');
-          setStatus({ type: 'success', text: '留言成功！感谢您的反馈 💬' });
+          setStatus({ type: 'success', text: 'τòÖΦ¿ÇµêÉσèƒ∩╝üµäƒΦ░óµé¿τÜäσÅìΘªê ≡ƒÆ¼' });
           fetchMessages();
         } catch (error) {
           console.error('Error posting message:', error);
-          setStatus({ type: 'error', text: '留言失败，请稍后重试' });
+          setStatus({ type: 'error', text: 'τòÖΦ¿Çσñ▒Φ┤Ñ∩╝îΦ»╖τ¿ìσÉÄΘçìΦ»ò' });
         } finally {
           setSubmitting(false);
         }
@@ -336,16 +336,16 @@
         const minutes = Math.floor(diff / 60000);
         const hours = Math.floor(diff / 3600000);
         const days = Math.floor(diff / 86400000);
-        if (minutes < 1) return '刚刚';
-        if (minutes < 60) return `${minutes}分钟前`;
-        if (hours < 24) return `${hours}小时前`;
-        if (days < 7) return `${days}天前`;
+        if (minutes < 1) return 'σêÜσêÜ';
+        if (minutes < 60) return `${minutes}σêåΘÆƒσëì`;
+        if (hours < 24) return `${hours}σ░Åµù╢σëì`;
+        if (days < 7) return `${days}σñ⌐σëì`;
         return d.toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
       };
       
       return (
         <div className="guestbook-section">
-          <div className="guestbook-title">💬 留言板</div>
+          <div className="guestbook-title">≡ƒÆ¼ τòÖΦ¿Çµ¥┐</div>
           
           <form onSubmit={handleSubmit}>
             {status && (
@@ -358,7 +358,7 @@
               <input
                 type="text"
                 className="guestbook-input"
-                placeholder="✏️ 您的昵称（必填）"
+                placeholder="Γ£Å∩╕Å µé¿τÜäµÿ╡τº░∩╝êσ┐àσí½∩╝ë"
                 value={nickname}
                 onChange={e => setNickname(e.target.value)}
                 maxLength={30}
@@ -367,7 +367,7 @@
             <div className="guestbook-form full-width" style={{ marginBottom: '12px' }}>
               <textarea
                 className="guestbook-textarea"
-                placeholder="写下您的留言、建议或反馈...（必填）"
+                placeholder="σåÖΣ╕ïµé¿τÜäτòÖΦ¿ÇπÇüσ╗║Φ««µêûσÅìΘªê...∩╝êσ┐àσí½∩╝ë"
                 value={message}
                 onChange={e => setMessage(e.target.value)}
                 maxLength={500}
@@ -377,18 +377,18 @@
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
               <span style={{ fontSize: '12px', color: '#9ca3af' }}>{message.length}/500</span>
               <button type="submit" className="guestbook-submit" disabled={submitting || !nickname.trim() || !message.trim()}>
-                {submitting ? '提交中...' : '📝 提交留言'}
+                {submitting ? 'µÅÉΣ║ñΣ╕¡...' : '≡ƒô¥ µÅÉΣ║ñτòÖΦ¿Ç'}
               </button>
             </div>
           </form>
           
           {loading ? (
-            <div className="guestbook-empty">🔄 加载中...</div>
+            <div className="guestbook-empty">≡ƒöä σèáΦ╜╜Σ╕¡...</div>
           ) : messages.length === 0 ? (
-            <div className="guestbook-empty">还没有留言，快来抢沙发 🛋️</div>
+            <div className="guestbook-empty">Φ┐ÿµ▓íµ£ëτòÖΦ¿Ç∩╝îσ┐½µ¥Ñµèóµ▓ÖσÅæ ≡ƒ¢ï∩╕Å</div>
           ) : (
             <>
-              <div className="guestbook-count">共 {messages.length} 条留言</div>
+              <div className="guestbook-count">σà▒ {messages.length} µ¥íτòÖΦ¿Ç</div>
               <div className="guestbook-messages">
                 {messages.map((msg, idx) => (
                   <div key={msg.id || idx} className="guestbook-message">
@@ -533,54 +533,54 @@
           const desc = current.weatherDesc[0].value;
           // Map weather code to emoji and label
           const weatherMap = {
-            '113': { emoji: '☀️', label: '晴天' },
-            '116': { emoji: '⛅', label: '多云' },
-            '119': { emoji: '☁️', label: '阴天' },
-            '122': { emoji: '☁️', label: '阴天' },
-            '143': { emoji: '🌫️', label: '雾' },
-            '176': { emoji: '🌦️', label: '阵雨' },
-            '179': { emoji: '🌨️', label: '阵雪' },
-            '182': { emoji: '🌨️', label: '阵雪' },
-            '185': { emoji: '🌨️', label: '冻雨' },
-            '200': { emoji: '⛈️', label: '雷暴' },
-            '227': { emoji: '🌨️', label: '风雪' },
-            '230': { emoji: '❄️', label: '大雪' },
-            '248': { emoji: '🌫️', label: '雾' },
-            '260': { emoji: '🌫️', label: '雾' },
-            '263': { emoji: '🌧️', label: '小雨' },
-            '266': { emoji: '🌧️', label: '小雨' },
-            '281': { emoji: '🌨️', label: '雨夹雪' },
-            '284': { emoji: '🌨️', label: '雨夹雪' },
-            '293': { emoji: '🌧️', label: '小雨' },
-            '296': { emoji: '🌧️', label: '中雨' },
-            '299': { emoji: '🌧️', label: '中雨' },
-            '302': { emoji: '🌧️', label: '大雨' },
-            '305': { emoji: '🌧️', label: '大雨' },
-            '308': { emoji: '🌧️', label: '暴雨' },
-            '311': { emoji: '🌨️', label: '雨夹雪' },
-            '314': { emoji: '🌨️', label: '雨夹雪' },
-            '317': { emoji: '🌨️', label: '小雪' },
-            '320': { emoji: '🌨️', label: '中雪' },
-            '323': { emoji: '🌨️', label: '小雪' },
-            '326': { emoji: '🌨️', label: '小雪' },
-            '329': { emoji: '❄️', label: '大雪' },
-            '332': { emoji: '❄️', label: '大雪' },
-            '335': { emoji: '🌨️', label: '阵雪' },
-            '338': { emoji: '❄️', label: '冻雪' },
-            '350': { emoji: '🌨️', label: '冰粒' },
-            '353': { emoji: '🌦️', label: '阵雨' },
-            '356': { emoji: '🌧️', label: '大雨' },
-            '359': { emoji: '🌧️', label: '暴雨' },
-            '362': { emoji: '🌨️', label: '阵雨夹雪' },
-            '365': { emoji: '🌨️', label: '小冰雹' },
-            '368': { emoji: '🌨️', label: '小雪' },
-            '371': { emoji: '❄️', label: '大雪' },
-            '386': { emoji: '⛈️', label: '雷阵雨' },
-            '389': { emoji: '⛈️', label: '雷暴雨' },
-            '392': { emoji: '⛈️', label: '雷阵雪' },
-            '395': { emoji: '⛈️', label: '雷暴大雪' },
+            '113': { emoji: 'ΓÿÇ∩╕Å', label: 'µÖ┤σñ⌐' },
+            '116': { emoji: 'Γ¢à', label: 'σñÜΣ║æ' },
+            '119': { emoji: 'Γÿü∩╕Å', label: 'Θÿ┤σñ⌐' },
+            '122': { emoji: 'Γÿü∩╕Å', label: 'Θÿ┤σñ⌐' },
+            '143': { emoji: '≡ƒî½∩╕Å', label: 'Θ¢╛' },
+            '176': { emoji: '≡ƒîª∩╕Å', label: 'Θÿ╡Θ¢¿' },
+            '179': { emoji: '≡ƒî¿∩╕Å', label: 'Θÿ╡Θ¢¬' },
+            '182': { emoji: '≡ƒî¿∩╕Å', label: 'Θÿ╡Θ¢¬' },
+            '185': { emoji: '≡ƒî¿∩╕Å', label: 'σå╗Θ¢¿' },
+            '200': { emoji: 'Γ¢ê∩╕Å', label: 'Θ¢╖µÜ┤' },
+            '227': { emoji: '≡ƒî¿∩╕Å', label: 'ΘúÄΘ¢¬' },
+            '230': { emoji: 'Γ¥ä∩╕Å', label: 'σñºΘ¢¬' },
+            '248': { emoji: '≡ƒî½∩╕Å', label: 'Θ¢╛' },
+            '260': { emoji: '≡ƒî½∩╕Å', label: 'Θ¢╛' },
+            '263': { emoji: '≡ƒîº∩╕Å', label: 'σ░ÅΘ¢¿' },
+            '266': { emoji: '≡ƒîº∩╕Å', label: 'σ░ÅΘ¢¿' },
+            '281': { emoji: '≡ƒî¿∩╕Å', label: 'Θ¢¿σñ╣Θ¢¬' },
+            '284': { emoji: '≡ƒî¿∩╕Å', label: 'Θ¢¿σñ╣Θ¢¬' },
+            '293': { emoji: '≡ƒîº∩╕Å', label: 'σ░ÅΘ¢¿' },
+            '296': { emoji: '≡ƒîº∩╕Å', label: 'Σ╕¡Θ¢¿' },
+            '299': { emoji: '≡ƒîº∩╕Å', label: 'Σ╕¡Θ¢¿' },
+            '302': { emoji: '≡ƒîº∩╕Å', label: 'σñºΘ¢¿' },
+            '305': { emoji: '≡ƒîº∩╕Å', label: 'σñºΘ¢¿' },
+            '308': { emoji: '≡ƒîº∩╕Å', label: 'µÜ┤Θ¢¿' },
+            '311': { emoji: '≡ƒî¿∩╕Å', label: 'Θ¢¿σñ╣Θ¢¬' },
+            '314': { emoji: '≡ƒî¿∩╕Å', label: 'Θ¢¿σñ╣Θ¢¬' },
+            '317': { emoji: '≡ƒî¿∩╕Å', label: 'σ░ÅΘ¢¬' },
+            '320': { emoji: '≡ƒî¿∩╕Å', label: 'Σ╕¡Θ¢¬' },
+            '323': { emoji: '≡ƒî¿∩╕Å', label: 'σ░ÅΘ¢¬' },
+            '326': { emoji: '≡ƒî¿∩╕Å', label: 'σ░ÅΘ¢¬' },
+            '329': { emoji: 'Γ¥ä∩╕Å', label: 'σñºΘ¢¬' },
+            '332': { emoji: 'Γ¥ä∩╕Å', label: 'σñºΘ¢¬' },
+            '335': { emoji: '≡ƒî¿∩╕Å', label: 'Θÿ╡Θ¢¬' },
+            '338': { emoji: 'Γ¥ä∩╕Å', label: 'σå╗Θ¢¬' },
+            '350': { emoji: '≡ƒî¿∩╕Å', label: 'σå░τ▓Æ' },
+            '353': { emoji: '≡ƒîª∩╕Å', label: 'Θÿ╡Θ¢¿' },
+            '356': { emoji: '≡ƒîº∩╕Å', label: 'σñºΘ¢¿' },
+            '359': { emoji: '≡ƒîº∩╕Å', label: 'µÜ┤Θ¢¿' },
+            '362': { emoji: '≡ƒî¿∩╕Å', label: 'Θÿ╡Θ¢¿σñ╣Θ¢¬' },
+            '365': { emoji: '≡ƒî¿∩╕Å', label: 'σ░Åσå░Θ¢╣' },
+            '368': { emoji: '≡ƒî¿∩╕Å', label: 'σ░ÅΘ¢¬' },
+            '371': { emoji: 'Γ¥ä∩╕Å', label: 'σñºΘ¢¬' },
+            '386': { emoji: 'Γ¢ê∩╕Å', label: 'Θ¢╖Θÿ╡Θ¢¿' },
+            '389': { emoji: 'Γ¢ê∩╕Å', label: 'Θ¢╖µÜ┤Θ¢¿' },
+            '392': { emoji: 'Γ¢ê∩╕Å', label: 'Θ¢╖Θÿ╡Θ¢¬' },
+            '395': { emoji: 'Γ¢ê∩╕Å', label: 'Θ¢╖µÜ┤σñºΘ¢¬' },
           };
-          const mapped = weatherMap[weatherCode] || { emoji: '🌡️', label: desc };
+          const mapped = weatherMap[weatherCode] || { emoji: '≡ƒîí∩╕Å', label: desc };
           setWeather({
             temp: tempC,
             feelsLike,
@@ -659,8 +659,8 @@
       
       // Sort: tianshan2cun first, then followed, then by price
       const sortedListings = [...filteredListings].sort((a, b) => {
-        const aIsTianshan = a.name && a.name.includes('天山二村');
-        const bIsTianshan = b.name && b.name.includes('天山二村');
+        const aIsTianshan = a.name && a.name.includes('σñ⌐σ▒▒Σ║îµ¥æ');
+        const bIsTianshan = b.name && b.name.includes('σñ⌐σ▒▒Σ║îµ¥æ');
         if (aIsTianshan !== bIsTianshan) return bIsTianshan ? 1 : -1;
         if (a.isFollowed !== b.isFollowed) return b.isFollowed ? 1 : -1;
         return parseFloat(a.price) - parseFloat(b.price);
@@ -668,7 +668,7 @@
       
       const syncConfig = async () => {
         const price = customMaxPrice || '0';
-        setSyncStatus('同步中...');
+        setSyncStatus('σÉîµ¡ÑΣ╕¡...');
         try {
           const res = await fetch(`${SUPABASE_URL}/rest/v1/config?key=eq.max_price`, {
             method: 'POST',
@@ -681,13 +681,13 @@
             body: JSON.stringify([{ key: 'max_price', value: price }])
           });
           if (res.ok) {
-            setSyncStatus('已同步✓');
+            setSyncStatus('σ╖▓σÉîµ¡ÑΓ£ô');
             setTimeout(() => setSyncStatus(''), 2000);
           } else {
-            setSyncStatus('同步失败');
+            setSyncStatus('σÉîµ¡Ñσñ▒Φ┤Ñ');
           }
         } catch {
-          setSyncStatus('同步失败');
+          setSyncStatus('σÉîµ¡Ñσñ▒Φ┤Ñ');
         }
       };
       
@@ -720,37 +720,37 @@
         }
       };
 
-      const formatArea = (area) => area ? `${area}㎡` : '-';
+      const formatArea = (area) => area ? `${area}πÄí` : '-';
       
       return (
         <div className="container">
           <header>
-            <h1>🏠 长宁链家房价追踪器</h1>
-            <p>实时监控上海长宁区二手房价格变化</p>
+            <h1>≡ƒÅá Θò┐σ«üΘô╛σ«╢µê┐Σ╗╖Φ┐╜Φ╕¬σÖ¿</h1>
+            <p>σ«₧µù╢τ¢æµÄºΣ╕èµ╡╖Θò┐σ«üσî║Σ║îµëïµê┐Σ╗╖µá╝σÅÿσîû</p>
             {todayVisitors !== null && (
               <p style={{marginTop: '8px', fontSize: '15px', opacity: 0.95}}>
-                👥 今日访问: <strong>{todayVisitors}</strong> 人
+                ≡ƒæÑ Σ╗èµùÑΦ«┐Θù«: <strong>{todayVisitors}</strong> Σ║║
               </p>
             )}
             {/* Shanghai Weather Widget */}
             <div className="weather-widget">
               {weatherLoading ? (
-                <span>🔄 加载天气...</span>
+                <span>≡ƒöä σèáΦ╜╜σñ⌐µ░ö...</span>
               ) : weather ? (
                 <>
                   <span className="weather-emoji">{weather.emoji}</span>
                   <div className="weather-info">
-                    <span className="weather-temp">上海 {weather.temp}°C（体感 {weather.feelsLike}°C）</span>
-                    <span className="weather-detail">{weather.condition} · 风速 {weather.windSpeed}km/h · 湿度 {weather.humidity}%</span>
+                    <span className="weather-temp">Σ╕èµ╡╖ {weather.temp}┬░C∩╝êΣ╜ôµäƒ {weather.feelsLike}┬░C∩╝ë</span>
+                    <span className="weather-detail">{weather.condition} ┬╖ ΘúÄΘÇƒ {weather.windSpeed}km/h ┬╖ µ╣┐σ║ª {weather.humidity}%</span>
                   </div>
                   <button
                     className={`weather-refresh ${weatherLoading ? 'spinning' : ''}`}
                     onClick={fetchWeather}
-                    title="刷新天气"
-                  >🔄</button>
+                    title="σê╖µû░σñ⌐µ░ö"
+                  >≡ƒöä</button>
                 </>
               ) : (
-                <button className="weather-refresh" onClick={fetchWeather} title="加载天气">🌤️</button>
+                <button className="weather-refresh" onClick={fetchWeather} title="σèáΦ╜╜σñ⌐µ░ö">≡ƒîñ∩╕Å</button>
               )}
             </div>
           </header>
@@ -761,74 +761,74 @@
               className={`nav-tab ${currentTab === 'all' ? 'active' : ''}`}
               onClick={() => setCurrentTab('all')}
             >
-              🏠 全部房源
+              ≡ƒÅá σà¿Θâ¿µê┐µ║É
             </button>
             <button 
               className={`nav-tab wishlist ${currentTab === 'wishlist' ? 'active' : ''}`}
               onClick={() => setCurrentTab('wishlist')}
             >
-              ⭐ 我的关注 {stats.followedCount > 0 && `(${stats.followedCount})`}
+              Γ¡É µêæτÜäσà│µ│¿ {stats.followedCount > 0 && `(${stats.followedCount})`}
             </button>
             <button 
               className={`nav-tab ${currentTab === 'guestbook' ? 'active' : ''}`}
               onClick={() => setCurrentTab('guestbook')}
               style={currentTab === 'guestbook' ? { background: 'linear-gradient(135deg, #10b981, #059669)', boxShadow: '0 4px 12px rgba(16, 185, 129, 0.35)' } : {}}
             >
-              💬 留言板
+              ≡ƒÆ¼ τòÖΦ¿Çµ¥┐
             </button>
           </div>
           
           <div className="stats">
             <div className="stat-card">
               <div className="num">{stats.total}</div>
-              <div className="label">在售房源</div>
+              <div className="label">σ£¿σö«µê┐µ║É</div>
             </div>
             <div className="stat-card">
               <div className="num">{stats.minPrice}</div>
-              <div className="label">最低总价(万)</div>
+              <div className="label">µ£ÇΣ╜ÄµÇ╗Σ╗╖(Σ╕ç)</div>
             </div>
             <div className="stat-card">
               <div className="num">{stats.avgPrice}</div>
-              <div className="label">平均总价(万)</div>
+              <div className="label">σ╣│σ¥çµÇ╗Σ╗╖(Σ╕ç)</div>
             </div>
             <div className="stat-card">
-              <div className="num" style={{color: '#f59e0b'}}>⭐ {stats.followedCount}</div>
-              <div className="label">关注房源</div>
+              <div className="num" style={{color: '#f59e0b'}}>Γ¡É {stats.followedCount}</div>
+              <div className="label">σà│µ│¿µê┐µ║É</div>
             </div>
             <div className="stat-card wishlist">
-              <div className="num" style={{color: '#8b5cf6'}}>💜 {stats.wishlistCount}</div>
-              <div className="label">心愿单(小区)</div>
+              <div className="num" style={{color: '#8b5cf6'}}>≡ƒÆ£ {stats.wishlistCount}</div>
+              <div className="label">σ┐âµä┐σìò(σ░Åσî║)</div>
             </div>
             <div className="stat-card">
               <div className="num">{stats.snapshots}</div>
-              <div className="label">累计快照数</div>
+              <div className="label">τ┤»Φ«íσ┐½τàºµò░</div>
             </div>
             <div className="stat-card">
               <div className="num" style={{fontSize: '20px'}}>{stats.lastScrape ? new Date(stats.lastScrape).toLocaleString('en-GB', {timeZone:'Europe/London', month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit'}) : '-'}</div>
-              <div className="label">最后更新</div>
+              <div className="label">µ£ÇσÉÄµ¢┤µû░</div>
             </div>
           </div>
           
           <div className="filters">
-            <label>最高总价(万):</label>
+            <label>µ£ÇΘ½ÿµÇ╗Σ╗╖(Σ╕ç):</label>
             <input 
               type="number" 
-              placeholder="不限" 
+              placeholder="Σ╕ìΘÖÉ" 
               value={customMaxPrice} 
               onChange={e => setCustomMaxPrice(e.target.value)}
               style={{width: '80px'}}
             />
             
             <button className="refresh-btn" onClick={syncConfig} style={{background: '#34a853', fontSize: '12px', padding: '6px 12px'}}>
-              {syncStatus || '💾 同步条件到自动抓取'}
+              {syncStatus || '≡ƒÆ╛ σÉîµ¡Ñµ¥íΣ╗╢σê░Φç¬σè¿µèôσÅû'}
             </button>
             
-            <label>面积筛选:</label>
+            <label>Θ¥óτº»τ¡¢ΘÇë:</label>
             <select value={filterArea} onChange={e => setFilterArea(e.target.value)}>
-              <option value="all">全部</option>
-              <option value="under35">35㎡以下</option>
-              <option value="35-50">35-50㎡</option>
-              <option value="50plus">50㎡以上</option>
+              <option value="all">σà¿Θâ¿</option>
+              <option value="under35">35πÄíΣ╗ÑΣ╕ï</option>
+              <option value="35-50">35-50πÄí</option>
+              <option value="50plus">50πÄíΣ╗ÑΣ╕è</option>
             </select>
             
             <button 
@@ -836,19 +836,19 @@
               onClick={() => setShowFollowedOnly(!showFollowedOnly)}
               style={{background: showFollowedOnly ? '#f59e0b' : '#e0e0e0', color: showFollowedOnly ? 'white' : '#666', fontSize: '12px'}}
             >
-              {showFollowedOnly ? '⭐ 显示全部' : '⭐ 只看关注'}
+              {showFollowedOnly ? 'Γ¡É µÿ╛τñ║σà¿Θâ¿' : 'Γ¡É σÅ¬τ£ïσà│µ│¿'}
             </button>
             
             <button className="refresh-btn" onClick={fetchListings} disabled={loading}>
-              {loading ? '加载中...' : '🔄 刷新'}
+              {loading ? 'σèáΦ╜╜Σ╕¡...' : '≡ƒöä σê╖µû░'}
             </button>
             
-            {lastUpdate && <div className="last-update">🕐 抓取: {lastUpdate}</div>}
+            {lastUpdate && <div className="last-update">≡ƒòÉ µèôσÅû: {lastUpdate}</div>}
           </div>
           
           {currentTab === 'wishlist' && (
             <div style={{background: 'linear-gradient(135deg, #fef3c7, #fde68a)', padding: '12px 16px', borderRadius: '8px', marginBottom: '20px', color: '#92400e', fontSize: '14px'}}>
-              ⭐ 您关注的房源列表（共 {stats.followedCount} 套）— 点击卡片上的 ⭐ 可取消关注
+              Γ¡É µé¿σà│µ│¿τÜäµê┐µ║ÉσêùΦí¿∩╝êσà▒ {stats.followedCount} σÑù∩╝ëΓÇö τé╣σç╗σìíτëçΣ╕èτÜä Γ¡É σÅ»σÅûµ╢êσà│µ│¿
             </div>
           )}
           
@@ -856,53 +856,53 @@
           
           {loading && listings.length === 0 ? (
             <div className="loading">
-              <div>🔄 加载中...</div>
+              <div>≡ƒöä σèáΦ╜╜Σ╕¡...</div>
             </div>
           ) : sortedListings.length === 0 ? (
             <div className="empty">
-              <div className="empty-icon">{currentTab === 'wishlist' ? '💜' : '🏠'}</div>
-              <div>{currentTab === 'wishlist' ? '心愿单暂无房源' : (showFollowedOnly ? '暂无关注的房源' : '暂无符合条件的房源')}</div>
+              <div className="empty-icon">{currentTab === 'wishlist' ? '≡ƒÆ£' : '≡ƒÅá'}</div>
+              <div>{currentTab === 'wishlist' ? 'σ┐âµä┐σìòµÜéµùáµê┐µ║É' : (showFollowedOnly ? 'µÜéµùáσà│µ│¿τÜäµê┐µ║É' : 'µÜéµùáτ¼ªσÉêµ¥íΣ╗╢τÜäµê┐µ║É')}</div>
             </div>
           ) : (
             <div className="listings">
               {sortedListings.map((listing, idx) => (
                 <div key={idx} className={`listing-card ${listing.isFollowed ? 'followed' : ''} ${listing.isWishlist ? 'wishlist-item' : ''}`}>
                   <div className={`listing-image ${listing.isWishlist ? 'wishlist-bg' : ''}`}>
-                    <FloorPlanIcon layout={listing.name && listing.name.match(/\d+室\d+厅/) ? listing.name.match(/(\d+室\d+厅)/)[1] : null} />
-                    <div className="room-info">{listing.area ? (listing.name && listing.name.match(/\d+室\d+厅/) ? listing.name.match(/(\d+室\d+厅)/)[1] + ' · ' : '') + listing.area + '㎡' : '查看'}</div>
+                    <FloorPlanIcon layout={listing.name && listing.name.match(/\d+σ«ñ\d+σÄà/) ? listing.name.match(/(\d+σ«ñ\d+σÄà)/)[1] : null} />
+                    <div className="room-info">{listing.area ? (listing.name && listing.name.match(/\d+σ«ñ\d+σÄà/) ? listing.name.match(/(\d+σ«ñ\d+σÄà)/)[1] + ' ┬╖ ' : '') + listing.area + 'πÄí' : 'µƒÑτ£ï'}</div>
                     <button 
                       className={`follow-btn ${listing.isFollowed ? 'followed' : ''}`}
                       onClick={(e) => {
                         e.stopPropagation();
                         toggleFollow(listing.listing_id);
                       }}
-                      title={listing.isFollowed ? '取消关注' : '添加关注'}
+                      title={listing.isFollowed ? 'σÅûµ╢êσà│µ│¿' : 'µ╖╗σèáσà│µ│¿'}
                     >
-                      {listing.isFollowed ? '⭐' : '☆'}
+                      {listing.isFollowed ? 'Γ¡É' : 'Γÿå'}
                     </button>
                   </div>
                   <div className="listing-body">
                     <a href={listing.url} target="_blank" rel="noopener noreferrer" className="listing-name">
-                      {listing.name || '未知小区'}
+                      {listing.name || 'µ£¬τƒÑσ░Åσî║'}
                     </a>
-                    {listing.isFollowed && <span className="followed-badge">⭐ 已关注</span>}
-                    {listing.isWishlist && <span className="wishlist-badge">💜 心愿单</span>}
-                    <div className="listing-info">📐 面积: {formatArea(listing.area)}</div>
-                    <div className="listing-info">📍 板块: {listing.district || '-'}</div>
-                    <div className="listing-info">🏢 楼层: {listing.floor || '-'} | {listing.year_build || '-'}年</div>
-                    <div className="listing-info">💰 单价: {listing.unit_price || '-'}元/㎡</div>
+                    {listing.isFollowed && <span className="followed-badge">Γ¡É σ╖▓σà│µ│¿</span>}
+                    {listing.isWishlist && <span className="wishlist-badge">≡ƒÆ£ σ┐âµä┐σìò</span>}
+                    <div className="listing-info">≡ƒôÉ Θ¥óτº»: {formatArea(listing.area)}</div>
+                    <div className="listing-info">≡ƒôì µ¥┐σ¥ù: {listing.district || '-'}</div>
+                    <div className="listing-info">≡ƒÅó µÑ╝σ▒é: {listing.floor || '-'} | {listing.year_build || '-'}σ╣┤</div>
+                    <div className="listing-info">≡ƒÆ░ σìòΣ╗╖: {listing.unit_price || '-'}σàâ/πÄí</div>
                     <div className="listing-tags">
                       {(listing.tags || '').split(',').filter(t => t).map((tag, i) => (
                         <span key={i} className={`tag ${listing.isWishlist ? 'wishlist-tag' : ''}`}>{tag.trim()}</span>
                       ))}
                     </div>
                     <div className="price-tag">
-                      {listing.price}万<span className="unit"> ({listing.unit_price}元/㎡)</span>
+                      {listing.price}Σ╕ç<span className="unit"> ({listing.unit_price}σàâ/πÄí)</span>
                     </div>
                     {listing.priceStats && listing.priceStats.count > 1 && (
                       <div style={{marginTop: '6px'}}>
                         <span className="price-range">
-                          📊 {listing.priceStats.min}万 - {listing.priceStats.max}万
+                          ≡ƒôè {listing.priceStats.min}Σ╕ç - {listing.priceStats.max}Σ╕ç
                         </span>
                         <button className="history-btn" onClick={() => setPriceHistory({
                       {/* Verify Button */}
@@ -910,21 +910,21 @@
                         className={`verify-btn ${verificationStates[listing.listing_id] === 'verifying' ? 'verifying' : ''} ${verificationStates[listing.listing_id] === 'ok' ? 'verified-ok' : ''} ${verificationStates[listing.listing_id] === 'fail' ? 'verified-fail' : ''}`}
                         onClick={(e) => { e.stopPropagation(); verifyListingUrl(listing); }}
                         disabled={verificationStates[listing.listing_id] === 'verifying'}
-                        title="验证链接是否有效"
+                        title="Θ¬îΦ»üΘô╛µÄÑµÿ»σÉªµ£ëµòê"
                       >
-                        {verificationStates[listing.listing_id] === 'verifying' ? '验证中...' : verificationStates[listing.listing_id] === 'ok' ? '有效' : verificationStates[listing.listing_id] === 'fail' ? '已下架' : '验证'}
+                        {verificationStates[listing.listing_id] === 'verifying' ? 'Θ¬îΦ»üΣ╕¡...' : verificationStates[listing.listing_id] === 'ok' ? 'µ£ëµòê' : verificationStates[listing.listing_id] === 'fail' ? 'σ╖▓Σ╕ïµ₧╢' : 'Θ¬îΦ»ü'}
                       </button>
                           name: listing.name,
                           listing_id: listing.listing_id,
                           ...listing.priceStats
                         })}>
-                          📈 历史({listing.priceStats.count})
+                          ≡ƒôê σÄåσÅ▓({listing.priceStats.count})
                         </button>
                       </div>
                     )}
                     {listing.scraped_at && (
                       <div className="listing-info" style={{marginTop: '8px', color: '#888', fontSize: '11px'}}>
-                        🕐 {new Date(listing.scraped_at).toLocaleString('en-GB', {timeZone:'Europe/London', month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit', second:'2-digit'})}
+                        ≡ƒòÉ {new Date(listing.scraped_at).toLocaleString('en-GB', {timeZone:'Europe/London', month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit', second:'2-digit'})}
                       </div>
                     )}
                   </div>
@@ -938,10 +938,10 @@
             const now = new Date();
             const getCutoff = () => {
               if (historyRange === 1) {
-                // 今天：从今天0点开始
+                // Σ╗èσñ⌐∩╝ÜΣ╗ÄΣ╗èσñ⌐0τé╣σ╝Çσºï
                 return new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
               }
-              // 其他天数：从N天前的0点开始
+              // σà╢Σ╗ûσñ⌐µò░∩╝ÜΣ╗ÄNσñ⌐σëìτÜä0τé╣σ╝Çσºï
               return new Date(now.getFullYear(), now.getMonth(), now.getDate() - historyRange, 0, 0, 0, 0);
             };
             const cutoff = getCutoff();
@@ -957,11 +957,11 @@
             <div className="modal-overlay" onClick={() => setPriceHistory(null)}>
               <div className="modal-content" onClick={e => e.stopPropagation()}>
                 <div className="modal-header">
-                  <div className="modal-title">📈 价格历史</div>
+                  <div className="modal-title">≡ƒôê Σ╗╖µá╝σÄåσÅ▓</div>
                   <button className="modal-close" onClick={() => setPriceHistory(null)}>&times;</button>
                 </div>
                 <div style={{marginBottom: '16px', color: '#666', fontSize: '14px'}}>
-                  {priceHistory.name || '未知小区'} ({priceHistory.listing_id})
+                  {priceHistory.name || 'µ£¬τƒÑσ░Åσî║'} ({priceHistory.listing_id})
                 </div>
                 
                 <div style={{display:'flex', gap:'8px', marginBottom:'16px'}}>
@@ -969,43 +969,43 @@
                     <button key={days} onClick={() => setHistoryRange(days)}
                       style={{padding:'6px 12px', border:'none', borderRadius:'16px', cursor:'pointer', fontSize:'12px', fontWeight:'600',
                         background: historyRange === days ? '#1a73e8' : '#e0e0e0', color: historyRange === days ? 'white' : '#666'}}>
-                      {days === 1 ? '今天' : days + '天'}
+                      {days === 1 ? 'Σ╗èσñ⌐' : days + 'σñ⌐'}
                     </button>
                   ))}
                   <button onClick={() => setHistoryRange(999)}
                     style={{padding:'6px 12px', border:'none', borderRadius:'16px', cursor:'pointer', fontSize:'12px', fontWeight:'600',
                       background: historyRange >= 100 ? '#1a73e8' : '#e0e0e0', color: historyRange >= 100 ? 'white' : '#666'}}>
-                    全部
+                    σà¿Θâ¿
                   </button>
                 </div>
                 
                 <div style={{display:'grid', gridTemplateColumns:'repeat(4, 1fr)', gap:'12px', marginBottom:'20px', background:'#f5f5f5', padding:'16px', borderRadius:'12px'}}>
                   <div style={{textAlign:'center'}}>
-                    <div style={{fontSize:'11px', color:'#666'}}>最低价</div>
-                    <div style={{fontSize:'18px', fontWeight:'700', color:'#34a853'}}>{minP}万</div>
+                    <div style={{fontSize:'11px', color:'#666'}}>µ£ÇΣ╜ÄΣ╗╖</div>
+                    <div style={{fontSize:'18px', fontWeight:'700', color:'#34a853'}}>{minP}Σ╕ç</div>
                   </div>
                   <div style={{textAlign:'center'}}>
-                    <div style={{fontSize:'11px', color:'#666'}}>当前价</div>
-                    <div style={{fontSize:'18px', fontWeight:'700', color:'#1a73e8'}}>{displayHistory[0]?.price}万</div>
+                    <div style={{fontSize:'11px', color:'#666'}}>σ╜ôσëìΣ╗╖</div>
+                    <div style={{fontSize:'18px', fontWeight:'700', color:'#1a73e8'}}>{displayHistory[0]?.price}Σ╕ç</div>
                   </div>
                   <div style={{textAlign:'center'}}>
-                    <div style={{fontSize:'11px', color:'#666'}}>最高价</div>
-                    <div style={{fontSize:'18px', fontWeight:'700', color:'#c5221f'}}>{maxP}万</div>
+                    <div style={{fontSize:'11px', color:'#666'}}>µ£ÇΘ½ÿΣ╗╖</div>
+                    <div style={{fontSize:'18px', fontWeight:'700', color:'#c5221f'}}>{maxP}Σ╕ç</div>
                   </div>
                   <div style={{textAlign:'center'}}>
-                    <div style={{fontSize:'11px', color:'#666'}}>均价</div>
-                    <div style={{fontSize:'18px', fontWeight:'700', color:'#666'}}>{avgP}万</div>
+                    <div style={{fontSize:'11px', color:'#666'}}>σ¥çΣ╗╖</div>
+                    <div style={{fontSize:'18px', fontWeight:'700', color:'#666'}}>{avgP}Σ╕ç</div>
                   </div>
                 </div>
                 
                 {displayHistory.length === 0 ? (
                   <div style={{textAlign:'center', padding:'40px', color:'#999'}}>
-                    该时间段内暂无数据
+                    Φ»Ñµù╢Θù┤µ«╡σåàµÜéµùáµò░µì«
                   </div>
                 ) : (
                 <div className="price-chart">
                   <div style={{fontSize:'13px', color:'#666', marginBottom:'16px'}}>
-                    共 {displayHistory.length} 条记录 {historyRange < 100 && `（最近${historyRange}天）`}
+                    σà▒ {displayHistory.length} µ¥íΦ«░σ╜ò {historyRange < 100 && `∩╝êµ£ÇΦ┐æ${historyRange}σñ⌐∩╝ë`}
                   </div>
                   <svg width="100%" height="200" viewBox="0 0 800 200" preserveAspectRatio="xMidYMid meet">
                     {(() => {
@@ -1032,7 +1032,7 @@
                         return {x, y, price: h.price, date: h.scraped_at};
                       });
                       
-                      // 格式化日期：同一天只显示首次日期，后续只显示时间
+                      // µá╝σ╝ÅσîûµùÑµ£ƒ∩╝ÜσÉîΣ╕Çσñ⌐σÅ¬µÿ╛τñ║Θªûµ¼íµùÑµ£ƒ∩╝îσÉÄτ╗¡σÅ¬µÿ╛τñ║µù╢Θù┤
                       let lastDateStr = '';
                       const formatDate = (dateStr) => {
                         const d = new Date(dateStr);
@@ -1090,8 +1090,8 @@
           })()}
           
           <footer>
-            <p>数据来源: 链家网 · 由 OpenClaw 自动追踪</p>
-            <p>每5分钟自动更新 · 请勿视为投资建议，购房前请自行核实信息</p>
+            <p>µò░µì«µ¥Ñµ║É: Θô╛σ«╢τ╜æ ┬╖ τö▒ OpenClaw Φç¬σè¿Φ┐╜Φ╕¬</p>
+            <p>µ»Å5σêåΘÆƒΦç¬σè¿µ¢┤µû░ ┬╖ Φ»╖σï┐ΦºåΣ╕║µèòΦ╡äσ╗║Φ««∩╝îΦ┤¡µê┐σëìΦ»╖Φç¬Φíîµá╕σ«₧Σ┐íµü»</p>
           </footer>
         </div>
       );
