@@ -91,149 +91,183 @@
   </style>
 </head>
 <body>
-  <div id="root">
-    <div class="loading">加载中...</div>
-  </div>
+  <div id="root"><div class="loading">加载中...</div></div>
   <script>
-    // Static listing data - will be loaded from Supabase
     window.APP_CONFIG = {
-      supabaseUrl: 'https://your-project.supabase.co',
-      supabaseKey: 'your-anon-key'
+      supabaseUrl: 'https://zojmkzwhyoxowssxkoko.supabase.co',
+      supabaseKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpvam1rendoeW94b3dzc3hrb2tvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ3MzY4ODIsImV4cCI6MjA5MDMxMjg4Mn0.1vrlQlyL6kQ63Rc3G_otmTwIcqpGrQnZaFFMMou7bcE'
     };
   </script>
   <script type="text/babel">
     const { useState, useEffect } = React;
-    
-    // Sample data for display
-    const sampleListings = [
-      { id: '1', name: '天原二村', address: '天山路177弄', price: 3500000, floor: '3/6', rooms: '2室1厅', area: '42㎡', tags: ['地铁', '学区'] },
-      { id: '2', name: '宝地新品居', address: '娄山关路100号', price: 5250000, floor: '10/25', rooms: '3室2厅', area: '78㎡', tags: ['精装', '近地铁'] },
-    ];
-    
+
+    const { supabaseUrl, supabaseKey } = window.APP_CONFIG;
+
+    // Extract community name from the full name field
+    function extractCommunity(name) {
+      if (!name) return '未知小区';
+      // Format: "描述...小区名 - 区域 房型"
+      const match = name.match(/(.+?)\s*[\u4e00-\u9fa5]+?(?:小区|公寓|花园|新村|大楼|弄|路|园|苑|居|府|邸|庄|城|湾|港|庭|苑|阁|楼|居|家|馆|舍)\s*[\u4e00-\u9fa5]*/);
+      if (match) return match[0].split('-')[0].trim();
+      return name.split(' ')[0] || name.substring(0, 20);
+    }
+
+    // Extract room type from name
+    function extractRoomType(name) {
+      const match = name.match(/(\d+室\d+厅?)/);
+      return match ? match[1] : '';
+    }
+
+    async function fetchListings() {
+      const res = await fetch(`${supabaseUrl}/rest/v1/listings?select=*&order=created_at.desc`, {
+        headers: {
+          'apikey': supabaseKey,
+          'Authorization': `Bearer ${supabaseKey}`
+        }
+      });
+      if (!res.ok) throw new Error('Failed to fetch listings');
+      return res.json();
+    }
+
+    async function updateFollowed(listingId, followed) {
+      const res = await fetch(`${supabaseUrl}/rest/v1/listings?id=eq.${listingId}`, {
+        method: 'PATCH',
+        headers: {
+          'apikey': supabaseKey,
+          'Authorization': `Bearer ${supabaseKey}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=minimal'
+        },
+        body: JSON.stringify({ followed })
+      });
+      return res.ok;
+    }
+
     function App() {
+      const [listings, setListings] = useState([]);
+      const [loading, setLoading] = useState(true);
+      const [error, setError] = useState(null);
       const [activeTab, setActiveTab] = useState('listings');
-      const [listings, setListings] = useState(sampleListings);
-      const [followed, setFollowed] = useState([]);
-      const [wishlist, setWishlist] = useState([]);
-      const [loading, setLoading] = useState(false);
-      
-      const toggleFollow = (id) => {
-        if (followed.includes(id)) {
-          setFollowed(followed.filter(f => f !== id));
+      const [followedIds, setFollowedIds] = useState(new Set());
+      const [wishlist, setWishlist] = useState(new Set());
+      const [filter, setFilter] = useState('all');
+
+      useEffect(() => {
+        fetchListings()
+          .then(data => {
+            setListings(data);
+            const followed = new Set(data.filter(l => l.followed).map(l => l.id));
+            setFollowedIds(followed);
+            setLoading(false);
+          })
+          .catch(err => {
+            setError(err.message);
+            setLoading(false);
+          });
+      }, []);
+
+      const toggleFollow = (id) => async (e) => {
+        e.stopPropagation();
+        const newFollowed = new Set(followedIds);
+        if (newFollowed.has(id)) {
+          newFollowed.delete(id);
         } else {
-          setFollowed([...followed, id]);
+          newFollowed.add(id);
         }
+        setFollowedIds(newFollowed);
+        await updateFollowed(id, newFollowed.has(id));
       };
-      
+
       const toggleWishlist = (id) => {
-        if (wishlist.includes(id)) {
-          setWishlist(wishlist.filter(w => w !== id));
+        const newWishlist = new Set(wishlist);
+        if (newWishlist.has(id)) {
+          newWishlist.delete(id);
         } else {
-          setWishlist([...wishlist, id]);
+          newWishlist.add(id);
         }
+        setWishlist(newWishlist);
       };
-      
+
       const formatPrice = (price) => {
-        return (price / 10000).toFixed(0) + '万';
+        return (parseFloat(price) || 0).toFixed(0) + '万';
       };
-      
-      const displayedListings = activeTab === 'wishlist' 
-        ? listings.filter(l => wishlist.includes(l.id))
-        : listings;
-      
+
+      const filteredListings = listings.filter(l => {
+        if (filter === 'follow' && !followedIds.has(l.id)) return false;
+        if (filter === 'wishlist' && !wishlist.has(l.id)) return false;
+        return true;
+      });
+
+      if (loading) return <div className="container"><div className="loading">加载中...</div></div>;
+      if (error) return <div className="container"><div className="empty-state"><h3>加载失败</h3><p>{error}</p></div></div>;
+
       return (
         <div className="container">
           <header>
             <h1>上海房源追踪</h1>
             <p>关注房源价格变化，把握最佳购房时机</p>
           </header>
-          
+
           <nav className="nav-tabs">
-            <button 
-              className={`nav-tab ${activeTab === 'listings' ? 'active' : ''}`}
-              onClick={() => setActiveTab('listings')}
-            >
+            <button className={`nav-tab ${activeTab === 'listings' ? 'active' : ''}`} onClick={() => { setActiveTab('listings'); setFilter('all'); }}>
               全部房源 ({listings.length})
             </button>
-            <button 
-              className={`nav-tab ${activeTab === 'follow' ? 'active' : ''}`}
-              onClick={() => setActiveTab('follow')}
-            >
-              我的关注 ({followed.length})
+            <button className={`nav-tab ${activeTab === 'follow' ? 'active' : ''}`} onClick={() => { setActiveTab('follow'); setFilter('follow'); }}>
+              我的关注 ({followedIds.size})
             </button>
-            <button 
-              className={`nav-tab wishlist ${activeTab === 'wishlist' ? 'active' : ''}`}
-              onClick={() => setActiveTab('wishlist')}
-            >
-              心愿单 ({wishlist.length})
+            <button className={`nav-tab wishlist ${activeTab === 'wishlist' ? 'active' : ''}`} onClick={() => { setActiveTab('wishlist'); setFilter('wishlist'); }}>
+              心愿单 ({wishlist.size})
             </button>
           </nav>
-          
+
           <div className="stats">
             <div className="stat-card">
               <div className="num">{listings.length}</div>
               <div className="label">房源总数</div>
             </div>
             <div className="stat-card">
-              <div className="num">{followed.length}</div>
+              <div className="num">{followedIds.size}</div>
               <div className="label">关注中</div>
             </div>
             <div className="stat-card wishlist">
-              <div className="num">{wishlist.length}</div>
+              <div className="num">{wishlist.size}</div>
               <div className="label">心愿单</div>
             </div>
           </div>
-          
+
           <div className="listings">
-            {displayedListings.map(listing => (
-              <div 
-                key={listing.id} 
-                className={`listing-card ${followed.includes(listing.id) ? 'followed' : ''} ${wishlist.includes(listing.id) ? 'wishlist-item' : ''}`}
-              >
-                <div className={`listing-image ${wishlist.includes(listing.id) ? 'wishlist-bg' : ''}`}>
-                  <div className="room-info">
-                    {listing.floor}楼 | {listing.area}
-                  </div>
-                  <button 
-                    className={`follow-btn ${followed.includes(listing.id) ? 'followed' : ''}`}
-                    onClick={(e) => { e.stopPropagation(); toggleFollow(listing.id); }}
-                  >
-                    {followed.includes(listing.id) ? '★' : '☆'}
+            {filteredListings.map(listing => (
+              <div key={listing.id} className={`listing-card ${followedIds.has(listing.id) ? 'followed' : ''} ${wishlist.has(listing.id) ? 'wishlist-item' : ''}`}>
+                <div className={`listing-image ${wishlist.has(listing.id) ? 'wishlist-bg' : ''}`}>
+                  <div className="room-info">{listing.floor}楼 | {listing.area}㎡</div>
+                  <button className={`follow-btn ${followedIds.has(listing.id) ? 'followed' : ''}`} onClick={toggleFollow(listing.id)}>
+                    {followedIds.has(listing.id) ? '★' : '☆'}
                   </button>
                 </div>
                 <div className="listing-body">
-                  <a href={`/room/${listing.id}`} className="listing-name">
-                    {listing.name}
-                  </a>
-                  <div className="listing-info">
-                    <span>{listing.address}</span>
-                  </div>
-                  <div className="listing-info">
-                    <span>{listing.rooms}</span>
-                  </div>
+                  <a href={listing.url} target="_blank" rel="noopener noreferrer" className="listing-name">{extractCommunity(listing.name)}</a>
+                  <div className="listing-info"><span>{listing.district || '未知区域'}</span></div>
+                  <div className="listing-info"><span>{extractRoomType(listing.name) || listing.name.split(' ').slice(-2).join(' ')}</span></div>
                   <div className="listing-tags">
-                    {listing.tags.map((tag, i) => (
-                      <span key={i} className={`tag ${wishlist.includes(listing.id) && tag === '心仪' ? 'wishlist-tag' : ''}`}>
-                        {tag}
-                      </span>
-                    ))}
+                    {listing.year_build && <span className="tag">{listing.year_build}年建</span>}
+                    {listing.tags && listing.tags.split(',').filter(t => t.trim()).map((tag, i) => <span key={i} className="tag">{tag}</span>)}
                   </div>
                   <div className="price-tag">{formatPrice(listing.price)}</div>
                 </div>
               </div>
             ))}
           </div>
-          
-          {displayedListings.length === 0 && (
+
+          {filteredListings.length === 0 && (
             <div className="empty-state">
               <h3>暂无房源</h3>
-              <p>{activeTab === 'wishlist' ? '点击心形图标添加心愿单' : '暂无房源数据'}</p>
+              <p>{filter === 'wishlist' ? '点击星标添加心愿单' : '暂无房源数据'}</p>
             </div>
           )}
         </div>
       );
     }
-    
+
     ReactDOM.render(<App />, document.getElementById('root'));
   </script>
 </body>
