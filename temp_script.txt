@@ -1,0 +1,174 @@
+﻿  <script type="text/babel">
+    const { useState, useEffect } = React;
+
+    const { supabaseUrl, supabaseKey } = window.APP_CONFIG;
+
+    // Extract community name from the full name field
+    function extractCommunity(name) {
+      if (!name) return 'æœªçŸ¥å°åŒº';
+      // Format: "æè¿°...å°åŒºå - åŒºåŸŸ æˆ¿åž‹"
+      const match = name.match(/(.+?)\s*[\u4e00-\u9fa5]+?(?:å°åŒº|å…¬å¯“|èŠ±å›­|æ–°æ‘|å¤§æ¥¼|å¼„|è·¯|å›­|è‹‘|å±…|åºœ|é‚¸|åº„|åŸŽ|æ¹¾|æ¸¯|åº­|è‹‘|é˜|æ¥¼|å±…|å®¶|é¦†|èˆ)\s*[\u4e00-\u9fa5]*/);
+      if (match) return match[0].split('-')[0].trim();
+      return name.split(' ')[0] || name.substring(0, 20);
+    }
+
+    // Extract room type from name
+    function extractRoomType(name) {
+      const match = name.match(/(\d+å®¤\d+åŽ…?)/);
+      return match ? match[1] : '';
+    }
+
+    async function fetchListings() {
+      const res = await fetch(`${supabaseUrl}/rest/v1/listings?select=*&order=created_at.desc`, {
+        headers: {
+          'apikey': supabaseKey,
+          'Authorization': `Bearer ${supabaseKey}`
+        }
+      });
+      if (!res.ok) throw new Error('Failed to fetch listings');
+      return res.json();
+    }
+
+    async function updateFollowed(listingId, followed) {
+      const res = await fetch(`${supabaseUrl}/rest/v1/listings?id=eq.${listingId}`, {
+        method: 'PATCH',
+        headers: {
+          'apikey': supabaseKey,
+          'Authorization': `Bearer ${supabaseKey}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=minimal'
+        },
+        body: JSON.stringify({ followed })
+      });
+      return res.ok;
+    }
+
+    function App() {
+      const [listings, setListings] = useState([]);
+      const [loading, setLoading] = useState(true);
+      const [error, setError] = useState(null);
+      const [activeTab, setActiveTab] = useState('listings');
+      const [followedIds, setFollowedIds] = useState(new Set());
+      const [wishlist, setWishlist] = useState(new Set());
+      const [filter, setFilter] = useState('all');
+
+      useEffect(() => {
+        fetchListings()
+          .then(data => {
+            setListings(data);
+            const followed = new Set(data.filter(l => l.followed).map(l => l.id));
+            setFollowedIds(followed);
+            setLoading(false);
+          })
+          .catch(err => {
+            setError(err.message);
+            setLoading(false);
+          });
+      }, []);
+
+      const toggleFollow = (id) => async (e) => {
+        e.stopPropagation();
+        const newFollowed = new Set(followedIds);
+        if (newFollowed.has(id)) {
+          newFollowed.delete(id);
+        } else {
+          newFollowed.add(id);
+        }
+        setFollowedIds(newFollowed);
+        await updateFollowed(id, newFollowed.has(id));
+      };
+
+      const toggleWishlist = (id) => {
+        const newWishlist = new Set(wishlist);
+        if (newWishlist.has(id)) {
+          newWishlist.delete(id);
+        } else {
+          newWishlist.add(id);
+        }
+        setWishlist(newWishlist);
+      };
+
+      const formatPrice = (price) => {
+        return (parseFloat(price) || 0).toFixed(0) + 'ä¸‡';
+      };
+
+      const filteredListings = listings.filter(l => {
+        if (filter === 'follow' && !followedIds.has(l.id)) return false;
+        if (filter === 'wishlist' && !wishlist.has(l.id)) return false;
+        return true;
+      });
+
+      if (loading) return <div className="container"><div className="loading">åŠ è½½ä¸­...</div></div>;
+      if (error) return <div className="container"><div className="empty-state"><h3>åŠ è½½å¤±è´¥</h3><p>{error}</p></div></div>;
+
+      return (
+        <div className="container">
+          <header>
+            <h1>ä¸Šæµ·æˆ¿æºè¿½è¸ª</h1>
+            <p>å…³æ³¨æˆ¿æºä»·æ ¼å˜åŒ–ï¼ŒæŠŠæ¡æœ€ä½³è´­æˆ¿æ—¶æœº</p>
+          </header>
+
+          <nav className="nav-tabs">
+            <button className={`nav-tab ${activeTab === 'listings' ? 'active' : ''}`} onClick={() => { setActiveTab('listings'); setFilter('all'); }}>
+              å…¨éƒ¨æˆ¿æº ({listings.length})
+            </button>
+            <button className={`nav-tab ${activeTab === 'follow' ? 'active' : ''}`} onClick={() => { setActiveTab('follow'); setFilter('follow'); }}>
+              æˆ‘çš„å…³æ³¨ ({followedIds.size})
+            </button>
+            <button className={`nav-tab wishlist ${activeTab === 'wishlist' ? 'active' : ''}`} onClick={() => { setActiveTab('wishlist'); setFilter('wishlist'); }}>
+              å¿ƒæ„¿å• ({wishlist.size})
+            </button>
+          </nav>
+
+          <div className="stats">
+            <div className="stat-card">
+              <div className="num">{listings.length}</div>
+              <div className="label">æˆ¿æºæ€»æ•°</div>
+            </div>
+            <div className="stat-card">
+              <div className="num">{followedIds.size}</div>
+              <div className="label">å…³æ³¨ä¸­</div>
+            </div>
+            <div className="stat-card wishlist">
+              <div className="num">{wishlist.size}</div>
+              <div className="label">å¿ƒæ„¿å•</div>
+            </div>
+          </div>
+
+          <div className="listings">
+            {filteredListings.map(listing => (
+              <div key={listing.id} className={`listing-card ${followedIds.has(listing.id) ? 'followed' : ''} ${wishlist.has(listing.id) ? 'wishlist-item' : ''}`}>
+                <div className={`listing-image ${wishlist.has(listing.id) ? 'wishlist-bg' : ''}`}>
+                  <div className="room-info">{listing.floor}æ¥¼ | {listing.area}ãŽ¡</div>
+                  <button className={`follow-btn ${followedIds.has(listing.id) ? 'followed' : ''}`} onClick={toggleFollow(listing.id)}>
+                    {followedIds.has(listing.id) ? 'â˜…' : 'â˜†'}
+                  </button>
+                </div>
+                <div className="listing-body">
+                  <a href={listing.url} target="_blank" rel="noopener noreferrer" className="listing-name">{extractCommunity(listing.name)}</a>
+                  <div className="listing-info"><span>{listing.district || 'æœªçŸ¥åŒºåŸŸ'}</span></div>
+                  <div className="listing-info"><span>{extractRoomType(listing.name) || listing.name.split(' ').slice(-2).join(' ')}</span></div>
+                  <div className="listing-tags">
+                    {listing.year_build && <span className="tag">{listing.year_build}å¹´å»º</span>}
+                    {listing.tags && listing.tags.split(',').filter(t => t.trim()).map((tag, i) => <span key={i} className="tag">{tag}</span>)}
+                  </div>
+                  <div className="price-tag">{formatPrice(listing.price)}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {filteredListings.length === 0 && (
+            <div className="empty-state">
+              <h3>æš‚æ— æˆ¿æº</h3>
+              <p>{filter === 'wishlist' ? 'ç‚¹å‡»æ˜Ÿæ ‡æ·»åŠ å¿ƒæ„¿å•' : 'æš‚æ— æˆ¿æºæ•°æ®'}</p>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    ReactDOM.render(<App />, document.getElementById('root'));
+  </script>
+</body>
+</html>

@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>上海房源追踪</title>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f0f2f5; min-height: 100vh; }
+    .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+    header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px 20px; border-radius: 16px; margin-bottom: 24px; text-align: center; box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3); }
+    header h1 { font-size: 28px; margin-bottom: 8px; font-weight: 700; }
+    header p { opacity: 0.9; font-size: 14px; }
+    .nav-tabs { display: flex; gap: 8px; margin-bottom: 20px; }
+    .nav-tab { padding: 12px 24px; background: white; border: none; border-radius: 10px; cursor: pointer; font-size: 15px; font-weight: 600; color: #666; transition: all 0.25s; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .nav-tab:hover { background: #f5f5f5; transform: translateY(-2px); }
+    .nav-tab.active { background: #667eea; color: white; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.35); }
+    .nav-tab.wishlist.active { background: linear-gradient(135deg, #f59e0b, #ef4444); }
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .stat-card { background: white; padding: 20px; border-radius: 14px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.08); border: 1px solid #f3f4f6; }
+    .stat-card .num { font-size: 32px; font-weight: 700; color: #667eea; }
+    .stat-card .label { color: #6b7280; font-size: 13px; margin-top: 4px; }
+    .stat-card.wishlist .num { background: linear-gradient(135deg, #f59e0b, #ef4444); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .filters { background: white; padding: 18px 20px; border-radius: 14px; margin-bottom: 20px; display: flex; gap: 14px; flex-wrap: wrap; align-items: center; box-shadow: 0 4px 12px rgba(0,0,0,0.08); border: 1px solid #f3f4f6; }
+    .filters select, .filters input { padding: 10px 14px; border: 1px solid #e5e7eb; border-radius: 10px; font-size: 14px; background: #f9fafb; transition: border-color 0.2s; }
+    .filters select:focus, .filters input:focus { border-color: #667eea; outline: none; }
+    .filters label { font-size: 14px; color: #4b5563; }
+    .listings { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
+    .listing-card { background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.08); transition: transform 0.3s, box-shadow 0.3s; cursor: pointer; position: relative; border: 1px solid #e5e7eb; }
+    .listing-card:hover { transform: translateY(-6px); box-shadow: 0 12px 32px rgba(0,0,0,0.15); }
+    .listing-card.followed { border: 2px solid #f59e0b; }
+    .listing-card.wishlist-item { border: 2px solid #8b5cf6; }
+    .listing-image { height: 220px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; position: relative; overflow: hidden; padding: 8px; }
+    .listing-image .floor-icon { width: 180px; height: 140px; margin-bottom: 8px; border-radius: 12px; background: rgba(255,255,255,0.15); padding: 6px; object-fit: contain; }
+    .listing-image .room-info { font-size: 16px; font-weight: 700; background: rgba(255,255,255,0.35); padding: 8px 18px; border-radius: 16px; backdrop-filter: blur(4px); letter-spacing: 1px; }
+    .listing-image.wishlist-bg { background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%); }
+    .follow-btn { position: absolute; top: 12px; right: 12px; background: rgba(255,255,255,0.95); border: none; border-radius: 50%; width: 44px; height: 44px; cursor: pointer; font-size: 20px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.15); transition: transform 0.2s, background 0.2s; }
+    .follow-btn:hover { transform: scale(1.12); background: white; }
+    .follow-btn.followed { background: #fef3c7; }
+    .listing-body { padding: 18px; }
+    .listing-name { font-size: 15px; font-weight: 600; color: #1f2937; margin-bottom: 10px; text-decoration: none; display: block; line-height: 1.4; }
+    .listing-name:hover { color: #667eea; }
+    .listing-info { font-size: 13px; color: #6b7280; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+    .listing-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px; }
+    .tag { padding: 5px 10px; background: #f3f4f6; color: #4b5563; border-radius: 6px; font-size: 11px; font-weight: 500; }
+    .tag.wishlist-tag { background: #fef3c7; color: #92400e; }
+    .price-tag { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 20px; border-radius: 14px; font-weight: 800; font-size: 26px; display: inline-block; margin-top: 14px; box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4); letter-spacing: 1px; }
+    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+    .modal-content { background: white; border-radius: 16px; padding: 24px; max-width: 800px; width: 95%; max-height: 85vh; overflow-y: auto; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .modal-title { font-size: 18px; font-weight: 700; color: #333; }
+    .modal-close { background: none; border: none; font-size: 24px; cursor: pointer; color: #999; }
+    .modal-close:hover { color: #333; }
+    .history-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; align-items: center; }
+    .history-item:last-child { border-bottom: none; }
+    .history-date { color: #6b7280; font-size: 13px; }
+    .history-price { font-weight: 700; font-size: 16px; background: linear-gradient(135deg, #667eea, #764ba2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .history-change { font-size: 11px; margin-left: 8px; }
+    .history-change.up { color: #ef4444; }
+    .history-change.down { color: #10b981; }
+    .price-chart { margin: 16px 0; }
+    .followed-badge { background: linear-gradient(135deg, #f59e0b, #ef4444); color: white; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; }
+    .wishlist-badge { background: linear-gradient(135deg, #8b5cf6, #ec4899); color: white; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; }
+    .guestbook-section { background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); border: 1px solid #f3f4f6; margin-top: 20px; }
+    .guestbook-title { font-size: 20px; font-weight: 700; color: #333; margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
+    .guestbook-form { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+    .guestbook-form.full-width { grid-template-columns: 1fr; }
+    .guestbook-input { padding: 12px 16px; border: 1px solid #e5e7eb; border-radius: 12px; font-size: 14px; background: #f9fafb; transition: border-color 0.2s, box-shadow 0.2s; width: 100%; font-family: inherit; }
+    .guestbook-input:focus { border-color: #667eea; outline: none; box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15); }
+    .guestbook-textarea { padding: 12px 16px; border: 1px solid #e5e7eb; border-radius: 12px; font-size: 14px; background: #f9fafb; transition: border-color 0.2s, box-shadow 0.2s; width: 100%; resize: vertical; min-height: 80px; font-family: inherit; }
+    .guestbook-textarea:focus { border-color: #667eea; outline: none; box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15); }
+    .guestbook-submit { padding: 12px 24px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
+    .guestbook-submit:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(102, 126, 234, 0.35); }
+    .guestbook-submit:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+    .guestbook-messages { display: flex; flex-direction: column; gap: 16px; }
+    .guestbook-message { display: flex; gap: 12px; padding: 16px; background: #f9fafb; border-radius: 12px; border: 1px solid #f3f4f6; }
+    .guestbook-avatar { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 700; color: white; flex-shrink: 0; }
+    .guestbook-content { flex: 1; }
+    .guestbook-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+    .guestbook-nickname { font-weight: 700; color: #1f2937; font-size: 14px; }
+    .guestbook-time { font-size: 12px; color: #9ca3af; }
+    .guestbook-text { color: #4b5563; font-size: 14px; line-height: 1.6; white-space: pre-wrap; word-break: break-word; }
+    .guestbook-empty { text-align: center; padding: 40px 20px; color: #9ca3af; font-size: 14px; }
+    .guestbook-success { background: #ecfdf5; border: 1px solid #a7f3d0; color: #065f46; padding: 12px; border-radius: 12px; margin-bottom: 16px; }
+    .empty-state { text-align: center; padding: 80px 20px; color: #9ca3af; }
+    .empty-state h3 { font-size: 20px; margin-bottom: 8px; color: #6b7280; }
+    .loading { text-align: center; padding: 60px 20px; color: #667eea; font-size: 18px; }
+  </style>
+</head>
+<body>
+  <div id="root">
+    <div class="loading">加载中...</div>
+  </div>
+  <script>
+    // Static listing data - will be loaded from Supabase
+    window.APP_CONFIG = {
+      supabaseUrl: 'https://your-project.supabase.co',
+      supabaseKey: 'your-anon-key'
+    };
+  </script>
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+    
+    // Sample data for display
+    const sampleListings = [
+      { id: '1', name: '天原二村', address: '天山路177弄', price: 3500000, floor: '3/6', rooms: '2室1厅', area: '42㎡', tags: ['地铁', '学区'] },
+      { id: '2', name: '宝地新品居', address: '娄山关路100号', price: 5250000, floor: '10/25', rooms: '3室2厅', area: '78㎡', tags: ['精装', '近地铁'] },
+    ];
+    
+    function App() {
+      const [activeTab, setActiveTab] = useState('listings');
+      const [listings, setListings] = useState(sampleListings);
+      const [followed, setFollowed] = useState([]);
+      const [wishlist, setWishlist] = useState([]);
+      const [loading, setLoading] = useState(false);
+      
+      const toggleFollow = (id) => {
+        if (followed.includes(id)) {
+          setFollowed(followed.filter(f => f !== id));
+        } else {
+          setFollowed([...followed, id]);
+        }
+      };
+      
+      const toggleWishlist = (id) => {
+        if (wishlist.includes(id)) {
+          setWishlist(wishlist.filter(w => w !== id));
+        } else {
+          setWishlist([...wishlist, id]);
+        }
+      };
+      
+      const formatPrice = (price) => {
+        return (price / 10000).toFixed(0) + '万';
+      };
+      
+      const displayedListings = activeTab === 'wishlist' 
+        ? listings.filter(l => wishlist.includes(l.id))
+        : listings;
+      
+      return (
+        <div className="container">
+          <header>
+            <h1>上海房源追踪</h1>
+            <p>关注房源价格变化，把握最佳购房时机</p>
+          </header>
+          
+          <nav className="nav-tabs">
+            <button 
+              className={`nav-tab ${activeTab === 'listings' ? 'active' : ''}`}
+              onClick={() => setActiveTab('listings')}
+            >
+              全部房源 ({listings.length})
+            </button>
+            <button 
+              className={`nav-tab ${activeTab === 'follow' ? 'active' : ''}`}
+              onClick={() => setActiveTab('follow')}
+            >
+              我的关注 ({followed.length})
+            </button>
+            <button 
+              className={`nav-tab wishlist ${activeTab === 'wishlist' ? 'active' : ''}`}
+              onClick={() => setActiveTab('wishlist')}
+            >
+              心愿单 ({wishlist.length})
+            </button>
+          </nav>
+          
+          <div className="stats">
+            <div className="stat-card">
+              <div className="num">{listings.length}</div>
+              <div className="label">房源总数</div>
+            </div>
+            <div className="stat-card">
+              <div className="num">{followed.length}</div>
+              <div className="label">关注中</div>
+            </div>
+            <div className="stat-card wishlist">
+              <div className="num">{wishlist.length}</div>
+              <div className="label">心愿单</div>
+            </div>
+          </div>
+          
+          <div className="listings">
+            {displayedListings.map(listing => (
+              <div 
+                key={listing.id} 
+                className={`listing-card ${followed.includes(listing.id) ? 'followed' : ''} ${wishlist.includes(listing.id) ? 'wishlist-item' : ''}`}
+              >
+                <div className={`listing-image ${wishlist.includes(listing.id) ? 'wishlist-bg' : ''}`}>
+                  <div className="room-info">
+                    {listing.floor}楼 | {listing.area}
+                  </div>
+                  <button 
+                    className={`follow-btn ${followed.includes(listing.id) ? 'followed' : ''}`}
+                    onClick={(e) => { e.stopPropagation(); toggleFollow(listing.id); }}
+                  >
+                    {followed.includes(listing.id) ? '★' : '☆'}
+                  </button>
+                </div>
+                <div className="listing-body">
+                  <a href={`/room/${listing.id}`} className="listing-name">
+                    {listing.name}
+                  </a>
+                  <div className="listing-info">
+                    <span>{listing.address}</span>
+                  </div>
+                  <div className="listing-info">
+                    <span>{listing.rooms}</span>
+                  </div>
+                  <div className="listing-tags">
+                    {listing.tags.map((tag, i) => (
+                      <span key={i} className={`tag ${wishlist.includes(listing.id) && tag === '心仪' ? 'wishlist-tag' : ''}`}>
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                  <div className="price-tag">{formatPrice(listing.price)}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+          
+          {displayedListings.length === 0 && (
+            <div className="empty-state">
+              <h3>暂无房源</h3>
+              <p>{activeTab === 'wishlist' ? '点击心形图标添加心愿单' : '暂无房源数据'}</p>
+            </div>
+          )}
+        </div>
+      );
+    }
+    
+    ReactDOM.render(<App />, document.getElementById('root'));
+  </script>
+</body>
+</html>
