@@ -179,6 +179,7 @@
                     return (
                       <tr key={item.id}>
                         <td className="name-cell">
+                          <div style={{fontSize:'12px',fontWeight:'700',color:'#667eea',marginBottom:'2px'}}>{item.community||item.district||'-'}</div>
                           <div>{item.name}</div>
                           <div style={{fontSize: '12px', color: '#6b7280', fontWeight: 400, marginTop: '4px'}}>
                             {formatDate(item.created_at)}

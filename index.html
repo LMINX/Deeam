@@ -212,6 +212,9 @@
     // Wishlist community names
     const WISHLIST_COMMUNITIES = ['天山二村', '天山二村小区'];
     
+    // 天山二村社区名称（用于community字段匹配）
+    const TIANSHAN2CUN_NAMES = ['天山二村', '天山二村小区'];
+    
     // Floor plan image component (from Gemini Moody style)
     const FLOORPLAN_IMAGES = {
       '1室0厅': 'https://raw.githubusercontent.com/LMINX/Deeam/main/floorplans/1shi0ting.png',
@@ -424,7 +427,7 @@
       const [historyRange, setHistoryRange] = useState(30);
       const [showFollowedOnly, setShowFollowedOnly] = useState(false);
       const [followedIds, setFollowedIds] = useState(loadFollowed);
-      const [currentTab, setCurrentTab] = useState('all'); // 'all' or 'wishlist'
+      const [currentTab, setCurrentTab] = useState('all'); // 'all', 'wishlist', 'tianshan2cun', 'latest'
       const [todayVisitors, setTodayVisitors] = useState(null);
       const [weather, setWeather] = useState(null); // { temp, feelsLike, condition, windSpeed, humidity, emoji }
       const [weatherLoading, setWeatherLoading] = useState(false);
@@ -642,6 +645,13 @@
         // Tab filter: wishlist (followed listings) vs all
         if (currentTab === 'wishlist' && !followedIds.includes(l.listing_id)) return false;
         
+        // Tab filter: 天山二村心愿单 - only show properties with 天山二村 community
+        if (currentTab === 'tianshan2cun') {
+          const community = l.community || '';
+          const isTianshan2Cun = TIANSHAN2CUN_NAMES.some(name => community.includes(name));
+          if (!isTianshan2Cun) return false;
+        }
+        
         // Followed filter - only applies to 'all' tab
         if (showFollowedOnly && currentTab !== 'wishlist' && !followedIds.includes(l.listing_id)) return false;
         
@@ -768,6 +778,13 @@
               onClick={() => setCurrentTab('wishlist')}
             >
               ⭐ 我的关注 {stats.followedCount > 0 && `(${stats.followedCount})`}
+            </button>
+            <button 
+              className={`nav-tab ${currentTab === 'tianshan2cun' ? 'active' : ''}`}
+              onClick={() => setCurrentTab('tianshan2cun')}
+              style={currentTab === 'tianshan2cun' ? { background: 'linear-gradient(135deg, #8b5cf6, #ec4899)', boxShadow: '0 4px 12px rgba(139, 92, 246, 0.35)' } : { background: '#f3e8ff', color: '#7c3aed' }}
+            >
+              💜 天山二村心愿单
             </button>
             <button 
               className={`nav-tab ${currentTab === 'latest' ? 'active' : ''}`}
