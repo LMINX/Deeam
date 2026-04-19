@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>上海房源追踪</title>
+  <title>🏠 长宁链家房价追踪器</title>
   <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -48,7 +48,24 @@
     .tag { padding: 5px 10px; background: #f3f4f6; color: #4b5563; border-radius: 6px; font-size: 11px; font-weight: 500; }
     .tag.wishlist-tag { background: #fef3c7; color: #92400e; }
     .price-tag { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 20px; border-radius: 14px; font-weight: 800; font-size: 26px; display: inline-block; margin-top: 14px; box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4); letter-spacing: 1px; }
-    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+    .price-tag .unit { font-size: 14px; font-weight: 500; opacity: 0.9; margin-left: 4px; }
+    .empty { text-align: center; padding: 60px 20px; color: #999; }
+    .empty-icon { font-size: 64px; margin-bottom: 16px; }
+    .loading { text-align: center; padding: 60px 20px; color: #666; }
+    .refresh-btn { background: #1a73e8; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 14px; }
+    .refresh-btn:hover { background: #1557b0; }
+    .refresh-btn:disabled { background: #ccc; cursor: not-allowed; }
+    .last-update { font-size: 15px; color: #667eea; margin-top: 12px; font-weight: 700; padding: 10px 16px; background: linear-gradient(135deg, rgba(102,126,234,0.12), rgba(118,75,162,0.12)); border-radius: 10px; display: inline-block; }
+    footer { text-align: center; padding: 40px 20px; color: #999; font-size: 12px; }
+    .price-range { background: #e8f5e9; color: #2e7d32; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; margin-top: 6px; display: inline-block; }
+    .history-btn { background: #ff9800; color: white; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 11px; margin-left: 8px; }
+    .verify-btn { background: #10b981; color: white; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 11px; margin-left: 8px; }
+    .verify-btn:hover { background: #059669; }
+    .verify-btn.verifying { background: #6b7280; cursor: wait; }
+    .verify-btn.verified-ok { background: #34a853; }
+    .verify-btn.verified-fail { background: #ea4335; }
+    .listing-url-status { font-size: 11px; margin-left: 8px; }
+  </style> { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 1000; }
     .modal-content { background: white; border-radius: 16px; padding: 24px; max-width: 800px; width: 95%; max-height: 85vh; overflow-y: auto; }
     .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
     .modal-title { font-size: 18px; font-weight: 700; color: #333; }
@@ -64,6 +81,7 @@
     .price-chart { margin: 16px 0; }
     .followed-badge { background: linear-gradient(135deg, #f59e0b, #ef4444); color: white; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; }
     .wishlist-badge { background: linear-gradient(135deg, #8b5cf6, #ec4899); color: white; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; }
+    /* Guestbook Styles */
     .guestbook-section { background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); border: 1px solid #f3f4f6; margin-top: 20px; }
     .guestbook-title { font-size: 20px; font-weight: 700; color: #333; margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
     .guestbook-form { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
@@ -84,191 +102,1002 @@
     .guestbook-time { font-size: 12px; color: #9ca3af; }
     .guestbook-text { color: #4b5563; font-size: 14px; line-height: 1.6; white-space: pre-wrap; word-break: break-word; }
     .guestbook-empty { text-align: center; padding: 40px 20px; color: #9ca3af; font-size: 14px; }
-    .guestbook-success { background: #ecfdf5; border: 1px solid #a7f3d0; color: #065f46; padding: 12px; border-radius: 12px; margin-bottom: 16px; }
-    .empty-state { text-align: center; padding: 80px 20px; color: #9ca3af; }
-    .empty-state h3 { font-size: 20px; margin-bottom: 8px; color: #6b7280; }
-    .loading { text-align: center; padding: 60px 20px; color: #667eea; font-size: 18px; }
+    .guestbook-success { background: #ecfdf5; border: 1px solid #a7f3d0; color: #065f46; padding: 10px 16px; border-radius: 10px; font-size: 13px; margin-bottom: 16px; text-align: center; }
+    .guestbook-error { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 10px 16px; border-radius: 10px; font-size: 13px; margin-bottom: 16px; text-align: center; }
+    .guestbook-count { font-size: 13px; color: #6b7280; margin-bottom: 16px; }
+    .weather-widget { display: inline-flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.25); backdrop-filter: blur(6px); border-radius: 16px; padding: 8px 16px; margin-top: 12px; font-size: 14px; color: white; border: 1px solid rgba(255,255,255,0.3); }
+    .weather-widget .weather-emoji { font-size: 24px; }
+    .weather-widget .weather-info { display: flex; flex-direction: column; gap: 2px; }
+    .weather-widget .weather-temp { font-weight: 700; font-size: 16px; }
+    .weather-widget .weather-detail { font-size: 12px; opacity: 0.9; }
+    .weather-refresh { background: rgba(255,255,255,0.2); border: none; border-radius: 50%; width: 28px; height: 28px; cursor: pointer; font-size: 12px; display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
+    .weather-refresh:hover { background: rgba(255,255,255,0.35); }
+    .weather-refresh.spinning { animation: spin 1s linear infinite; }
+    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
   </style>
 </head>
 <body>
-  <div id="root"><div class="loading">加载中...</div></div>
-  <script>
-    window.APP_CONFIG = {
-      supabaseUrl: 'https://zojmkzwhyoxowssxkoko.supabase.co',
-      supabaseKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpvam1rendoeW94b3dzc3hrb2tvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ3MzY4ODIsImV4cCI6MjA5MDMxMjg4Mn0.1vrlQlyL6kQ63Rc3G_otmTwIcqpGrQnZaFFMMou7bcE'
-    };
-  </script>
+  <div id="root"></div>
+  
   <script type="text/babel">
-    const { useState, useEffect } = React;
-
-    const { supabaseUrl, supabaseKey } = window.APP_CONFIG;
-
-    // Extract community name from the full name field
-    function extractCommunity(name) {
-      if (!name) return '未知小区';
-      // Format: "描述...小区名 - 区域 房型"
-      const match = name.match(/(.+?)\s*[\u4e00-\u9fa5]+?(?:小区|公寓|花园|新村|大楼|弄|路|园|苑|居|府|邸|庄|城|湾|港|庭|苑|阁|楼|居|家|馆|舍)\s*[\u4e00-\u9fa5]*/);
-      if (match) return match[0].split('-')[0].trim();
-      return name.split(' ')[0] || name.substring(0, 20);
-    }
-
-    // Extract room type from name
-    function extractRoomType(name) {
-      const match = name.match(/(\d+室\d+厅?)/);
-      return match ? match[1] : '';
-    }
-
-    async function fetchListings() {
-      const res = await fetch(`${supabaseUrl}/rest/v1/listings?select=*&order=created_at.desc`, {
-        headers: {
-          'apikey': supabaseKey,
-          'Authorization': `Bearer ${supabaseKey}`
-        }
+    const { useState, useEffect, useCallback } = React;
+    
+    const SUPABASE_URL = 'https://zojmkzwhyoxowssxkoko.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpvam1rendoeW94b3dzc3hrb2tvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ3MzY4ODIsImV4cCI6MjA5MDMxMjg4Mn0.1vrlQlyL6kQ63Rc3G_otmTwIcqpGrQnZaFFMMou7bcE';
+    
+    // Generate UUID v4
+    const generateUUID = () => {
+      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+        const r = Math.random() * 16 | 0;
+        const v = c === 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
       });
-      if (!res.ok) throw new Error('Failed to fetch listings');
-      return res.json();
-    }
+    };
 
-    async function updateFollowed(listingId, followed) {
-      const res = await fetch(`${supabaseUrl}/rest/v1/listings?id=eq.${listingId}`, {
-        method: 'PATCH',
-        headers: {
-          'apikey': supabaseKey,
-          'Authorization': `Bearer ${supabaseKey}`,
-          'Content-Type': 'application/json',
-          'Prefer': 'return=minimal'
-        },
-        body: JSON.stringify({ followed })
-      });
-      return res.ok;
-    }
-
-    function App() {
-      const [listings, setListings] = useState([]);
-      const [loading, setLoading] = useState(true);
-      const [error, setError] = useState(null);
-      const [activeTab, setActiveTab] = useState('listings');
-      const [followedIds, setFollowedIds] = useState(new Set());
-      const [wishlist, setWishlist] = useState(new Set());
-      const [filter, setFilter] = useState('all');
-
-      useEffect(() => {
-        fetchListings()
-          .then(data => {
-            setListings(data);
-            const followed = new Set(data.filter(l => l.followed).map(l => l.id));
-            setFollowedIds(followed);
-            setLoading(false);
-          })
-          .catch(err => {
-            setError(err.message);
-            setLoading(false);
-          });
-      }, []);
-
-      const toggleFollow = (id) => async (e) => {
-        e.stopPropagation();
-        const newFollowed = new Set(followedIds);
-        if (newFollowed.has(id)) {
-          newFollowed.delete(id);
-        } else {
-          newFollowed.add(id);
+    // Get or create visitor ID from localStorage
+    const getVisitorId = () => {
+      try {
+        let id = localStorage.getItem('deeam_visitor_id');
+        if (!id) {
+          id = generateUUID();
+          localStorage.setItem('deeam_visitor_id', id);
         }
-        setFollowedIds(newFollowed);
-        await updateFollowed(id, newFollowed.has(id));
-      };
+        return id;
+      } catch { return null; }
+    };
 
-      const toggleWishlist = (id) => {
-        const newWishlist = new Set(wishlist);
-        if (newWishlist.has(id)) {
-          newWishlist.delete(id);
-        } else {
-          newWishlist.add(id);
+    // Get today's date string (YYYY-MM-DD in local time)
+    const getTodayStr = () => {
+      const now = new Date();
+      return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    };
+
+    // Record today's visit and return today's total visitor count
+    const recordAndGetTodayCount = async () => {
+      const visitorId = getVisitorId();
+      const todayStr = getTodayStr();
+
+      // Try to upsert today's visit for this visitor
+      try {
+        await fetch(`${SUPABASE_URL}/rest/v1/daily_visitors`, {
+          method: 'POST',
+          headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+            'Content-Type': 'application/json',
+            'Prefer': 'resolution=merge-duplicates'
+          },
+          body: JSON.stringify([{
+            visitor_id: visitorId,
+            visited_date: todayStr
+          }])
+        });
+      } catch (e) {
+        console.error('Failed to record visit:', e);
+      }
+
+      // Get today's total unique visitors
+      try {
+        const res = await fetch(
+          `${SUPABASE_URL}/rest/v1/daily_visitors?visited_date=eq.${todayStr}&select=visitor_id`,
+          {
+            headers: {
+              'apikey': SUPABASE_ANON_KEY,
+              'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+            }
+          }
+        );
+        if (res.ok) {
+          const data = await res.json();
+          return data.length;
         }
-        setWishlist(newWishlist);
-      };
+      } catch (e) {
+        console.error('Failed to get today count:', e);
+      }
+      return null;
+    };
 
-      const formatPrice = (price) => {
-        return (parseFloat(price) || 0).toFixed(0) + '万';
-      };
-
-      const filteredListings = listings.filter(l => {
-        if (filter === 'follow' && !followedIds.has(l.id)) return false;
-        if (filter === 'wishlist' && !wishlist.has(l.id)) return false;
-        return true;
-      });
-
-      if (loading) return <div className="container"><div className="loading">加载中...</div></div>;
-      if (error) return <div className="container"><div className="empty-state"><h3>加载失败</h3><p>{error}</p></div></div>;
-
+    // Load followed IDs from localStorage
+    const loadFollowed = () => {
+      try {
+        return JSON.parse(localStorage.getItem('lianjia_followed') || '[]');
+      } catch { return []; }
+    };
+    
+    // Save followed IDs to localStorage
+    const saveFollowed = (ids) => {
+      localStorage.setItem('lianjia_followed', JSON.stringify(ids));
+    };
+    
+    // Wishlist community names
+    const WISHLIST_COMMUNITIES = ['天山二村', '天山二村小区'];
+    
+    // Floor plan image component (from Gemini Moody style)
+    const FLOORPLAN_IMAGES = {
+      '1室0厅': 'https://raw.githubusercontent.com/LMINX/Deeam/main/floorplans/1shi0ting.png',
+      '1室1厅': 'https://raw.githubusercontent.com/LMINX/Deeam/main/floorplans/1shi1ting.png',
+      '2室1厅': 'https://raw.githubusercontent.com/LMINX/Deeam/main/floorplans/2shi1ting.png',
+      '2室2厅': 'https://raw.githubusercontent.com/LMINX/Deeam/main/floorplans/2shi2ting.png',
+      '3室1厅': 'https://raw.githubusercontent.com/LMINX/Deeam/main/floorplans/3shi1ting.png',
+      '3室2厅': 'https://raw.githubusercontent.com/LMINX/Deeam/main/floorplans/3shi2ting.png',
+      '3室3厅': 'https://raw.githubusercontent.com/LMINX/Deeam/main/floorplans/3shi3ting.png',
+      '4室1厅': 'https://raw.githubusercontent.com/LMINX/Deeam/main/floorplans/4shi1ting.png',
+      '4室2厅': 'https://raw.githubusercontent.com/LMINX/Deeam/main/floorplans/4shi2ting.png',
+      '4室3厅': 'https://raw.githubusercontent.com/LMINX/Deeam/main/floorplans/4shi3ting.png',
+      '4室4厅': 'https://raw.githubusercontent.com/LMINX/Deeam/main/floorplans/4shi4ting.png',
+    };
+    
+    function FloorPlanIcon({ layout }) {
+      const match = layout ? layout.match(/(\d+)室(\d+)厅/) : null;
+      const layoutKey = match ? match[0] : null;
+      const imageUrl = layoutKey ? FLOORPLAN_IMAGES[layoutKey] : null;
+      
+      if (imageUrl) {
+        return <img src={imageUrl} alt={layoutKey} style={{ width: 80, height: 80, objectFit: 'contain' }} />;
+      }
+      
+      // Default house icon
       return (
-        <div className="container">
-          <header>
-            <h1>上海房源追踪</h1>
-            <p>关注房源价格变化，把握最佳购房时机</p>
-          </header>
-
-          <nav className="nav-tabs">
-            <button className={`nav-tab ${activeTab === 'listings' ? 'active' : ''}`} onClick={() => { setActiveTab('listings'); setFilter('all'); }}>
-              全部房源 ({listings.length})
-            </button>
-            <button className={`nav-tab ${activeTab === 'follow' ? 'active' : ''}`} onClick={() => { setActiveTab('follow'); setFilter('follow'); }}>
-              我的关注 ({followedIds.size})
-            </button>
-            <button className={`nav-tab wishlist ${activeTab === 'wishlist' ? 'active' : ''}`} onClick={() => { setActiveTab('wishlist'); setFilter('wishlist'); }}>
-              心愿单 ({wishlist.size})
-            </button>
-          </nav>
-
-          <div className="stats">
-            <div className="stat-card">
-              <div className="num">{listings.length}</div>
-              <div className="label">房源总数</div>
-            </div>
-            <div className="stat-card">
-              <div className="num">{followedIds.size}</div>
-              <div className="label">关注中</div>
-            </div>
-            <div className="stat-card wishlist">
-              <div className="num">{wishlist.size}</div>
-              <div className="label">心愿单</div>
-            </div>
-          </div>
-
-          <div className="listings">
-            {filteredListings.map(listing => (
-              <div key={listing.id} className={`listing-card ${followedIds.has(listing.id) ? 'followed' : ''} ${wishlist.has(listing.id) ? 'wishlist-item' : ''}`}>
-                <div className={`listing-image ${wishlist.has(listing.id) ? 'wishlist-bg' : ''}`}>
-                  <div className="room-info">{listing.floor}楼 | {listing.area}㎡</div>
-                  <button className={`follow-btn ${followedIds.has(listing.id) ? 'followed' : ''}`} onClick={toggleFollow(listing.id)}>
-                    {followedIds.has(listing.id) ? '★' : '☆'}
-                  </button>
-                </div>
-                <div className="listing-body">
-                  <a href={listing.url} target="_blank" rel="noopener noreferrer" className="listing-name">{extractCommunity(listing.name)}</a>
-                  <div className="listing-info"><span>{listing.district || '未知区域'}</span></div>
-                  <div className="listing-info"><span>{extractRoomType(listing.name) || listing.name.split(' ').slice(-2).join(' ')}</span></div>
-                  <div className="listing-tags">
-                    {listing.year_build && <span className="tag">{listing.year_build}年建</span>}
-                    {listing.tags && listing.tags.split(',').filter(t => t.trim()).map((tag, i) => <span key={i} className="tag">{tag}</span>)}
-                  </div>
-                  <div className="price-tag">{formatPrice(listing.price)}</div>
-                </div>
+        <svg viewBox="0 0 80 60" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: 80, height: 60 }}>
+          <rect x="10" y="15" width="60" height="40" rx="4" fill="white" fillOpacity="0.9" stroke="white" strokeWidth="2"/>
+          <rect x="30" y="35" width="20" height="20" rx="2" fill="#1a73e8" fillOpacity="0.6"/>
+          <text x="40" y="25" textAnchor="middle" fill="white" fontSize="12" fontWeight="bold">🏠</text>
+        </svg>
+      );
+    }
+    
+    // Guestbook Component
+    const AVATAR_COLORS = ['#667eea', '#f59e0b', '#10b981', '#ec4899', '#8b5cf6', '#ef4444', '#3b82f6', '#06b6d4'];
+    const getAvatarColor = (nickname) => {
+      let hash = 0;
+      for (let i = 0; i < nickname.length; i++) {
+        hash = nickname.charCodeAt(i) + ((hash << 5) - hash);
+      }
+      return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
+    };
+    const getInitials = (name) => name ? name.charAt(0).toUpperCase() : '?';
+    
+    function GuestbookSection() {
+      const [messages, setMessages] = useState([]);
+      const [loading, setLoading] = useState(true);
+      const [nickname, setNickname] = useState(() => localStorage.getItem('guestbook_nickname') || '');
+      const [message, setMessage] = useState('');
+      const [submitting, setSubmitting] = useState(false);
+      const [status, setStatus] = useState(null); // { type: 'success'|'error', text: string }
+      const [count, setCount] = useState(0);
+      
+      const fetchMessages = useCallback(async () => {
+        setLoading(true);
+        try {
+          const res = await fetch(
+            `${SUPABASE_URL}/rest/v1/guestbook?select=*&order=created_at.desc&limit=50`,
+            {
+              headers: {
+                'apikey': SUPABASE_ANON_KEY,
+                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+              }
+            }
+          );
+          if (!res.ok) throw new Error('Failed to fetch');
+          const data = await res.json();
+          setMessages(data);
+          setCount(data.length > 0 ? data[0].count || data.length : 0);
+        } catch (error) {
+          console.error('Error fetching guestbook:', error);
+        } finally {
+          setLoading(false);
+        }
+      }, []);
+      
+      useEffect(() => {
+        fetchMessages();
+      }, [fetchMessages]);
+      
+      const handleSubmit = async (e) => {
+        e.preventDefault();
+        if (!nickname.trim() || !message.trim()) {
+          setStatus({ type: 'error', text: '请填写昵称和留言内容' });
+          return;
+        }
+        setSubmitting(true);
+        setStatus(null);
+        try {
+          const res = await fetch(`${SUPABASE_URL}/rest/v1/guestbook`, {
+            method: 'POST',
+            headers: {
+              'apikey': SUPABASE_ANON_KEY,
+              'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+              'Content-Type': 'application/json',
+              'Prefer': 'return=representation'
+            },
+            body: JSON.stringify({
+              nickname: nickname.trim(),
+              message: message.trim(),
+              avatar_color: getAvatarColor(nickname.trim())
+            })
+          });
+          if (!res.ok) throw new Error('Failed to post');
+          localStorage.setItem('guestbook_nickname', nickname.trim());
+          setMessage('');
+          setStatus({ type: 'success', text: '留言成功！感谢您的反馈 💬' });
+          fetchMessages();
+        } catch (error) {
+          console.error('Error posting message:', error);
+          setStatus({ type: 'error', text: '留言失败，请稍后重试' });
+        } finally {
+          setSubmitting(false);
+        }
+      };
+      
+      const formatTime = (dateStr) => {
+        const d = new Date(dateStr);
+        const now = new Date();
+        const diff = now - d;
+        const minutes = Math.floor(diff / 60000);
+        const hours = Math.floor(diff / 3600000);
+        const days = Math.floor(diff / 86400000);
+        if (minutes < 1) return '刚刚';
+        if (minutes < 60) return `${minutes}分钟前`;
+        if (hours < 24) return `${hours}小时前`;
+        if (days < 7) return `${days}天前`;
+        return d.toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+      };
+      
+      return (
+        <div className="guestbook-section">
+          <div className="guestbook-title">💬 留言板</div>
+          
+          <form onSubmit={handleSubmit}>
+            {status && (
+              <div className={status.type === 'success' ? 'guestbook-success' : 'guestbook-error'}>
+                {status.text}
               </div>
-            ))}
-          </div>
-
-          {filteredListings.length === 0 && (
-            <div className="empty-state">
-              <h3>暂无房源</h3>
-              <p>{filter === 'wishlist' ? '点击星标添加心愿单' : '暂无房源数据'}</p>
+            )}
+            
+            <div className="guestbook-form">
+              <input
+                type="text"
+                className="guestbook-input"
+                placeholder="✏️ 您的昵称（必填）"
+                value={nickname}
+                onChange={e => setNickname(e.target.value)}
+                maxLength={30}
+              />
             </div>
+            <div className="guestbook-form full-width" style={{ marginBottom: '12px' }}>
+              <textarea
+                className="guestbook-textarea"
+                placeholder="写下您的留言、建议或反馈...（必填）"
+                value={message}
+                onChange={e => setMessage(e.target.value)}
+                maxLength={500}
+                rows={3}
+              />
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <span style={{ fontSize: '12px', color: '#9ca3af' }}>{message.length}/500</span>
+              <button type="submit" className="guestbook-submit" disabled={submitting || !nickname.trim() || !message.trim()}>
+                {submitting ? '提交中...' : '📝 提交留言'}
+              </button>
+            </div>
+          </form>
+          
+          {loading ? (
+            <div className="guestbook-empty">🔄 加载中...</div>
+          ) : messages.length === 0 ? (
+            <div className="guestbook-empty">还没有留言，快来抢沙发 🛋️</div>
+          ) : (
+            <>
+              <div className="guestbook-count">共 {messages.length} 条留言</div>
+              <div className="guestbook-messages">
+                {messages.map((msg, idx) => (
+                  <div key={msg.id || idx} className="guestbook-message">
+                    <div className="guestbook-avatar" style={{ background: msg.avatar_color || getAvatarColor(msg.nickname) }}>
+                      {getInitials(msg.nickname)}
+                    </div>
+                    <div className="guestbook-content">
+                      <div className="guestbook-meta">
+                        <span className="guestbook-nickname">{msg.nickname}</span>
+                        <span className="guestbook-time">{formatTime(msg.created_at)}</span>
+                      </div>
+                      <div className="guestbook-text">{msg.message}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
           )}
         </div>
       );
     }
+    
+    function App() {
+      const [listings, setListings] = useState([]);
+      const [loading, setLoading] = useState(true);
+      const [lastUpdate, setLastUpdate] = useState(null);
+      const [filterArea, setFilterArea] = useState('all');
+      const [customMaxPrice, setCustomMaxPrice] = useState('');
+      const [syncStatus, setSyncStatus] = useState('');
+      const [uniqueNames, setUniqueNames] = useState([]);
+      const [stats, setStats] = useState({ total: 0, minPrice: 0, avgPrice: 0, snapshots: 0, followedCount: 0, wishlistCount: 0 });
+      const [priceHistory, setPriceHistory] = useState(null);
+      const [historyRange, setHistoryRange] = useState(30);
+      const [showFollowedOnly, setShowFollowedOnly] = useState(false);
+      const [followedIds, setFollowedIds] = useState(loadFollowed);
+      const [currentTab, setCurrentTab] = useState('all'); // 'all' or 'wishlist'
+      const [todayVisitors, setTodayVisitors] = useState(null);
+      const [weather, setWeather] = useState(null); // { temp, feelsLike, condition, windSpeed, humidity, emoji }
+      const [weatherLoading, setWeatherLoading] = useState(false);
+      const [verificationStates, setVerificationStates] = useState({}); // { [listing_id]: 'verifying' | 'ok' | 'fail' | null }
+      
+      // Verify a listing URL using fetch HEAD request
+      const fetchListings = useCallback(async () => {
+        setLoading(true);
+        try {
+          const response = await fetch(
+            `${SUPABASE_URL}/rest/v1/listings?select=*&order=created_at.desc`,
+            {
+              headers: {
+                'apikey': SUPABASE_ANON_KEY,
+                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+              }
+            }
+          );
+          
+          if (!response.ok) throw new Error('Failed to fetch');
+          const data = await response.json();
+          
+          const byKey = {};
+          data.forEach(item => {
+            const key = (item.name || '') + '_' + (item.area || '');
+            if (!byKey[key]) {
+              byKey[key] = [];
+            }
+            byKey[key].push(item);
+          });
+          
+          const priceStats = {};
+          Object.keys(byKey).forEach(key => {
+            const records = byKey[key];
+            const prices = records.map(r => parseFloat(r.price)).filter(p => !isNaN(p));
+            const sortedByDate = [...records].sort((a, b) => new Date(b.scraped_at) - new Date(a.scraped_at));
+            priceStats[key] = {
+              min: prices.length > 0 ? Math.min(...prices) : 0,
+              max: prices.length > 0 ? Math.max(...prices) : 0,
+              count: records.length,
+              history: sortedByDate.map(r => ({
+                price: r.price,
+                scraped_at: r.scraped_at
+              }))
+            };
+          });
+          
+          // Deduplicate by listing_id only (name variations are extraction artifacts)
+          const byListingId = {};
+          data.forEach(item => {
+            const id = item.listing_id || '__empty__';
+            if (!byListingId[id] || new Date(item.created_at) > new Date(byListingId[id].created_at)) {
+              byListingId[id] = item;
+            }
+          });
+          
+          const latestListings = Object.values(byListingId).map(item => ({
+            ...item,
+            isFollowed: followedIds.includes(item.listing_id),
+            isWishlist: WISHLIST_COMMUNITIES.some(c => item.name.includes(c)),
+            priceStats: priceStats[(item.name || '') + '_' + (item.area || '')] || { min: item.price, max: item.price, count: 1, history: [{ price: item.price, scraped_at: item.scraped_at }] }
+          }));
+          
+          const names = [...new Set(latestListings.map(l => l.name))].sort();
+          const prices = latestListings.map(l => parseFloat(l.price)).filter(p => !isNaN(p));
+          const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
+          const avgPrice = prices.length > 0 ? Math.round(prices.reduce((a, b) => a + b, 0) / prices.length) : 0;
+          
+          const followedListings = latestListings.filter(l => followedIds.includes(l.listing_id));
+          const wishlistListings = latestListings.filter(l => l.isWishlist);
+          
+          setStats({
+            total: latestListings.length,
+            minPrice,
+            avgPrice,
+            snapshots: data.length,
+            lastScrape: latestListings.length > 0 ? Math.max(...latestListings.map(l => new Date(l.scraped_at || l.created_at))) : null,
+            followedCount: followedListings.length,
+            wishlistCount: wishlistListings.length
+          });
+          
+          setListings(latestListings);
+          setUniqueNames(names);
+          const now = new Date();
+          setLastUpdate(now.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) + ' ' + now.toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' }));
+        } catch (error) {
+          console.error('Error fetching:', error);
+        } finally {
+          setLoading(false);
+        }
+      }, [followedIds]);
+      
+      // Fetch Shanghai weather
+      const fetchWeather = useCallback(async () => {
+        setWeatherLoading(true);
+        try {
+          const res = await fetch('https://wttr.in/Shanghai?format=j1');
+          if (!res.ok) throw new Error('weather fetch failed');
+          const data = await res.json();
+          const current = data.current_condition[0];
+          const tempC = current.temp_C;
+          const feelsLike = current.FeelsLikeC;
+          const windKmph = current.windspeedKmph;
+          const humidity = current.humidity;
+          const weatherCode = current.weatherCode;
+          const desc = current.weatherDesc[0].value;
+          // Map weather code to emoji and label
+          const weatherMap = {
+            '113': { emoji: '☀️', label: '晴天' },
+            '116': { emoji: '⛅', label: '多云' },
+            '119': { emoji: '☁️', label: '阴天' },
+            '122': { emoji: '☁️', label: '阴天' },
+            '143': { emoji: '🌫️', label: '雾' },
+            '176': { emoji: '🌦️', label: '阵雨' },
+            '179': { emoji: '🌨️', label: '阵雪' },
+            '182': { emoji: '🌨️', label: '阵雪' },
+            '185': { emoji: '🌨️', label: '冻雨' },
+            '200': { emoji: '⛈️', label: '雷暴' },
+            '227': { emoji: '🌨️', label: '风雪' },
+            '230': { emoji: '❄️', label: '大雪' },
+            '248': { emoji: '🌫️', label: '雾' },
+            '260': { emoji: '🌫️', label: '雾' },
+            '263': { emoji: '🌧️', label: '小雨' },
+            '266': { emoji: '🌧️', label: '小雨' },
+            '281': { emoji: '🌨️', label: '雨夹雪' },
+            '284': { emoji: '🌨️', label: '雨夹雪' },
+            '293': { emoji: '🌧️', label: '小雨' },
+            '296': { emoji: '🌧️', label: '中雨' },
+            '299': { emoji: '🌧️', label: '中雨' },
+            '302': { emoji: '🌧️', label: '大雨' },
+            '305': { emoji: '🌧️', label: '大雨' },
+            '308': { emoji: '🌧️', label: '暴雨' },
+            '311': { emoji: '🌨️', label: '雨夹雪' },
+            '314': { emoji: '🌨️', label: '雨夹雪' },
+            '317': { emoji: '🌨️', label: '小雪' },
+            '320': { emoji: '🌨️', label: '中雪' },
+            '323': { emoji: '🌨️', label: '小雪' },
+            '326': { emoji: '🌨️', label: '小雪' },
+            '329': { emoji: '❄️', label: '大雪' },
+            '332': { emoji: '❄️', label: '大雪' },
+            '335': { emoji: '🌨️', label: '阵雪' },
+            '338': { emoji: '❄️', label: '冻雪' },
+            '350': { emoji: '🌨️', label: '冰粒' },
+            '353': { emoji: '🌦️', label: '阵雨' },
+            '356': { emoji: '🌧️', label: '大雨' },
+            '359': { emoji: '🌧️', label: '暴雨' },
+            '362': { emoji: '🌨️', label: '阵雨夹雪' },
+            '365': { emoji: '🌨️', label: '小冰雹' },
+            '368': { emoji: '🌨️', label: '小雪' },
+            '371': { emoji: '❄️', label: '大雪' },
+            '386': { emoji: '⛈️', label: '雷阵雨' },
+            '389': { emoji: '⛈️', label: '雷暴雨' },
+            '392': { emoji: '⛈️', label: '雷阵雪' },
+            '395': { emoji: '⛈️', label: '雷暴大雪' },
+          };
+          const mapped = weatherMap[weatherCode] || { emoji: '🌡️', label: desc };
+          setWeather({
+            temp: tempC,
+            feelsLike,
+            windSpeed: windKmph,
+            humidity,
+            condition: mapped.label,
+            emoji: mapped.emoji,
+            desc,
+          });
+        } catch (e) {
+          console.error('Weather fetch error:', e);
+        } finally {
+          setWeatherLoading(false);
+        }
+      }, []);
 
-    ReactDOM.render(<App />, document.getElementById('root'));
+      useEffect(() => {
+        fetchListings();
+        fetchWeather();
+        recordAndGetTodayCount().then(count => {
+          if (count !== null) setTodayVisitors(count);
+        });
+        fetch(`${SUPABASE_URL}/rest/v1/config?key=eq.max_price`, {
+          headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+          }
+        }).then(r => r.json()).then(data => {
+          if (data && data[0] && data[0].value && data[0].value !== '0') {
+            setCustomMaxPrice(data[0].value);
+          }
+        }).catch(() => {});
+        
+        const interval = setInterval(fetchListings, 60000);
+        return () => clearInterval(interval);
+      }, [fetchListings]);
+      
+      // Toggle follow status
+      const toggleFollow = (listingId) => {
+        const newFollowed = followedIds.includes(listingId)
+          ? followedIds.filter(id => id !== listingId)
+          : [...followedIds, listingId];
+        setFollowedIds(newFollowed);
+        saveFollowed(newFollowed);
+        
+        // Update local listings state
+        setListings(prev => prev.map(l => 
+          l.listing_id === listingId ? { ...l, isFollowed: !followedIds.includes(listingId) } : l
+        ));
+        
+        // Update stats
+        setStats(prev => ({
+          ...prev,
+          followedCount: newFollowed.length
+        }));
+      };
+      
+      const filteredListings = listings.filter(l => {
+        // Tab filter: wishlist (followed listings) vs all
+        if (currentTab === 'wishlist' && !followedIds.includes(l.listing_id)) return false;
+        
+        // Followed filter - only applies to 'all' tab
+        if (showFollowedOnly && currentTab !== 'wishlist' && !followedIds.includes(l.listing_id)) return false;
+        
+        const price = parseFloat(l.price);
+        // Don't filter wishlist items by max price
+        if (customMaxPrice && !l.isWishlist && price > parseFloat(customMaxPrice)) return false;
+        
+        const area = parseFloat(l.area);
+        if (filterArea === 'under35' && area >= 35) return false;
+        if (filterArea === '35-50' && (area < 35 || area >= 50)) return false;
+        if (filterArea === '50plus' && area < 50) return false;
+        
+        return true;
+      });
+      
+      // Sort: tianshan2cun first, then followed, then by price
+      const sortedListings = [...filteredListings].sort((a, b) => {
+        const aIsTianshan = a.name && a.name.includes('天山二村');
+        const bIsTianshan = b.name && b.name.includes('天山二村');
+        if (aIsTianshan !== bIsTianshan) return bIsTianshan ? 1 : -1;
+        if (a.isFollowed !== b.isFollowed) return b.isFollowed ? 1 : -1;
+        return parseFloat(a.price) - parseFloat(b.price);
+      });
+      
+      const syncConfig = async () => {
+        const price = customMaxPrice || '0';
+        setSyncStatus('同步中...');
+        try {
+          const res = await fetch(`${SUPABASE_URL}/rest/v1/config?key=eq.max_price`, {
+            method: 'POST',
+            headers: {
+              'apikey': SUPABASE_ANON_KEY,
+              'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+              'Content-Type': 'application/json',
+              'Prefer': 'resolution=merge-duplicates'
+            },
+            body: JSON.stringify([{ key: 'max_price', value: price }])
+          });
+          if (res.ok) {
+            setSyncStatus('已同步✓');
+            setTimeout(() => setSyncStatus(''), 2000);
+          } else {
+            setSyncStatus('同步失败');
+          }
+        } catch {
+          setSyncStatus('同步失败');
+        }
+      };
+      
+      // Verify a single listing URL using fetch
+      const verifyListingUrl = async (listing) => {
+        if (!listing.url) return;
+        setVerificationStates(prev => ({ ...prev, [listing.listing_id]: 'verifying' }));
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 8000);
+          const res = await fetch(listing.url, {
+            method: 'HEAD',
+            signal: controller.signal,
+            mode: 'no-cors'
+          });
+          clearTimeout(timeoutId);
+          // no-cors: if no error thrown, URL is reachable
+          setVerificationStates(prev => ({ ...prev, [listing.listing_id]: 'ok' }));
+        } catch {
+          // Try GET as fallback
+          try {
+            const controller2 = new AbortController();
+            const timeoutId2 = setTimeout(() => controller2.abort(), 8000);
+            await fetch(listing.url, { method: 'GET', signal: controller2.signal, mode: 'no-cors' });
+            clearTimeout(timeoutId2);
+            setVerificationStates(prev => ({ ...prev, [listing.listing_id]: 'ok' }));
+          } catch {
+            setVerificationStates(prev => ({ ...prev, [listing.listing_id]: 'fail' }));
+          }
+        }
+      };
+
+      const formatArea = (area) => area ? `${area}㎡` : '-';
+      
+      return (
+        <div className="container">
+          <header>
+            <h1>🏠 长宁链家房价追踪器</h1>
+            <p>实时监控上海长宁区二手房价格变化</p>
+            {todayVisitors !== null && (
+              <p style={{marginTop: '8px', fontSize: '15px', opacity: 0.95}}>
+                👥 今日访问: <strong>{todayVisitors}</strong> 人
+              </p>
+            )}
+            {/* Shanghai Weather Widget */}
+            <div className="weather-widget">
+              {weatherLoading ? (
+                <span>🔄 加载天气...</span>
+              ) : weather ? (
+                <>
+                  <span className="weather-emoji">{weather.emoji}</span>
+                  <div className="weather-info">
+                    <span className="weather-temp">上海 {weather.temp}°C（体感 {weather.feelsLike}°C）</span>
+                    <span className="weather-detail">{weather.condition} · 风速 {weather.windSpeed}km/h · 湿度 {weather.humidity}%</span>
+                  </div>
+                  <button
+                    className={`weather-refresh ${weatherLoading ? 'spinning' : ''}`}
+                    onClick={fetchWeather}
+                    title="刷新天气"
+                  >🔄</button>
+                </>
+              ) : (
+                <button className="weather-refresh" onClick={fetchWeather} title="加载天气">🌤️</button>
+              )}
+            </div>
+          </header>
+          
+          {/* Navigation Tabs */}
+          <div className="nav-tabs">
+            <button 
+              className={`nav-tab ${currentTab === 'all' ? 'active' : ''}`}
+              onClick={() => setCurrentTab('all')}
+            >
+              🏠 全部房源
+            </button>
+            <button 
+              className={`nav-tab wishlist ${currentTab === 'wishlist' ? 'active' : ''}`}
+              onClick={() => setCurrentTab('wishlist')}
+            >
+              ⭐ 我的关注 {stats.followedCount > 0 && `(${stats.followedCount})`}
+            </button>
+            <button 
+              className={`nav-tab ${currentTab === 'guestbook' ? 'active' : ''}`}
+              onClick={() => setCurrentTab('guestbook')}
+              style={currentTab === 'guestbook' ? { background: 'linear-gradient(135deg, #10b981, #059669)', boxShadow: '0 4px 12px rgba(16, 185, 129, 0.35)' } : {}}
+            >
+              💬 留言板
+            </button>
+          </div>
+          
+          <div className="stats">
+            <div className="stat-card">
+              <div className="num">{stats.total}</div>
+              <div className="label">在售房源</div>
+            </div>
+            <div className="stat-card">
+              <div className="num">{stats.minPrice}</div>
+              <div className="label">最低总价(万)</div>
+            </div>
+            <div className="stat-card">
+              <div className="num">{stats.avgPrice}</div>
+              <div className="label">平均总价(万)</div>
+            </div>
+            <div className="stat-card">
+              <div className="num" style={{color: '#f59e0b'}}>⭐ {stats.followedCount}</div>
+              <div className="label">关注房源</div>
+            </div>
+            <div className="stat-card wishlist">
+              <div className="num" style={{color: '#8b5cf6'}}>💜 {stats.wishlistCount}</div>
+              <div className="label">心愿单(小区)</div>
+            </div>
+            <div className="stat-card">
+              <div className="num">{stats.snapshots}</div>
+              <div className="label">累计快照数</div>
+            </div>
+            <div className="stat-card">
+              <div className="num" style={{fontSize: '20px'}}>{stats.lastScrape ? new Date(stats.lastScrape).toLocaleString('en-GB', {timeZone:'Europe/London', month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit'}) : '-'}</div>
+              <div className="label">最后更新</div>
+            </div>
+          </div>
+          
+          <div className="filters">
+            <label>最高总价(万):</label>
+            <input 
+              type="number" 
+              placeholder="不限" 
+              value={customMaxPrice} 
+              onChange={e => setCustomMaxPrice(e.target.value)}
+              style={{width: '80px'}}
+            />
+            
+            <button className="refresh-btn" onClick={syncConfig} style={{background: '#34a853', fontSize: '12px', padding: '6px 12px'}}>
+              {syncStatus || '💾 同步条件到自动抓取'}
+            </button>
+            
+            <label>面积筛选:</label>
+            <select value={filterArea} onChange={e => setFilterArea(e.target.value)}>
+              <option value="all">全部</option>
+              <option value="under35">35㎡以下</option>
+              <option value="35-50">35-50㎡</option>
+              <option value="50plus">50㎡以上</option>
+            </select>
+            
+            <button 
+              className="refresh-btn" 
+              onClick={() => setShowFollowedOnly(!showFollowedOnly)}
+              style={{background: showFollowedOnly ? '#f59e0b' : '#e0e0e0', color: showFollowedOnly ? 'white' : '#666', fontSize: '12px'}}
+            >
+              {showFollowedOnly ? '⭐ 显示全部' : '⭐ 只看关注'}
+            </button>
+            
+            <button className="refresh-btn" onClick={fetchListings} disabled={loading}>
+              {loading ? '加载中...' : '🔄 刷新'}
+            </button>
+            
+            {lastUpdate && <div className="last-update">🕐 抓取: {lastUpdate}</div>}
+          </div>
+          
+          {currentTab === 'wishlist' && (
+            <div style={{background: 'linear-gradient(135deg, #fef3c7, #fde68a)', padding: '12px 16px', borderRadius: '8px', marginBottom: '20px', color: '#92400e', fontSize: '14px'}}>
+              ⭐ 您关注的房源列表（共 {stats.followedCount} 套）— 点击卡片上的 ⭐ 可取消关注
+            </div>
+          )}
+          
+          {currentTab === 'guestbook' && <GuestbookSection />}
+          
+          {loading && listings.length === 0 ? (
+            <div className="loading">
+              <div>🔄 加载中...</div>
+            </div>
+          ) : sortedListings.length === 0 ? (
+            <div className="empty">
+              <div className="empty-icon">{currentTab === 'wishlist' ? '💜' : '🏠'}</div>
+              <div>{currentTab === 'wishlist' ? '心愿单暂无房源' : (showFollowedOnly ? '暂无关注的房源' : '暂无符合条件的房源')}</div>
+            </div>
+          ) : (
+            <div className="listings">
+              {sortedListings.map((listing, idx) => (
+                <div key={idx} className={`listing-card ${listing.isFollowed ? 'followed' : ''} ${listing.isWishlist ? 'wishlist-item' : ''}`}>
+                  <div className={`listing-image ${listing.isWishlist ? 'wishlist-bg' : ''}`}>
+                    <FloorPlanIcon layout={listing.name && listing.name.match(/\d+室\d+厅/) ? listing.name.match(/(\d+室\d+厅)/)[1] : null} />
+                    <div className="room-info">{listing.area ? (listing.name && listing.name.match(/\d+室\d+厅/) ? listing.name.match(/(\d+室\d+厅)/)[1] + ' · ' : '') + listing.area + '㎡' : '查看'}</div>
+                    <button 
+                      className={`follow-btn ${listing.isFollowed ? 'followed' : ''}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleFollow(listing.listing_id);
+                      }}
+                      title={listing.isFollowed ? '取消关注' : '添加关注'}
+                    >
+                      {listing.isFollowed ? '⭐' : '☆'}
+                    </button>
+                  </div>
+                  <div className="listing-body">
+                    <a href={listing.url} target="_blank" rel="noopener noreferrer" className="listing-name">
+                      {listing.name || '未知小区'}
+                    </a>
+                    {listing.isFollowed && <span className="followed-badge">⭐ 已关注</span>}
+                    {listing.isWishlist && <span className="wishlist-badge">💜 心愿单</span>}
+                    <div className="listing-info">📐 面积: {formatArea(listing.area)}</div>
+                    <div className="listing-info">📍 板块: {listing.district || '-'}</div>
+                    <div className="listing-info">🏢 楼层: {listing.floor || '-'} | {listing.year_build || '-'}年</div>
+                    <div className="listing-info">💰 单价: {listing.unit_price || '-'}元/㎡</div>
+                    <div className="listing-tags">
+                      {(listing.tags || '').split(',').filter(t => t).map((tag, i) => (
+                        <span key={i} className={`tag ${listing.isWishlist ? 'wishlist-tag' : ''}`}>{tag.trim()}</span>
+                      ))}
+                    </div>
+                    <div className="price-tag">
+                      {listing.price}万<span className="unit"> ({listing.unit_price}元/㎡)</span>
+                    </div>
+                    {listing.priceStats && listing.priceStats.count > 1 && (
+                      <div style={{marginTop: '6px'}}>
+                        <span className="price-range">
+                          📊 {listing.priceStats.min}万 - {listing.priceStats.max}万
+                        </span>
+                        <button className="history-btn" onClick={() => setPriceHistory({
+                      {/* Verify Button */}
+                      <button
+                        className={`verify-btn ${verificationStates[listing.listing_id] === 'verifying' ? 'verifying' : ''} ${verificationStates[listing.listing_id] === 'ok' ? 'verified-ok' : ''} ${verificationStates[listing.listing_id] === 'fail' ? 'verified-fail' : ''}`}
+                        onClick={(e) => { e.stopPropagation(); verifyListingUrl(listing); }}
+                        disabled={verificationStates[listing.listing_id] === 'verifying'}
+                        title="验证链接是否有效"
+                      >
+                        {verificationStates[listing.listing_id] === 'verifying' ? '验证中...' : verificationStates[listing.listing_id] === 'ok' ? '有效' : verificationStates[listing.listing_id] === 'fail' ? '已下架' : '验证'}
+                      </button>
+                          name: listing.name,
+                          listing_id: listing.listing_id,
+                          ...listing.priceStats
+                        })}>
+                          📈 历史({listing.priceStats.count})
+                        </button>
+                      </div>
+                    )}
+                    {listing.scraped_at && (
+                      <div className="listing-info" style={{marginTop: '8px', color: '#888', fontSize: '11px'}}>
+                        🕐 {new Date(listing.scraped_at).toLocaleString('en-GB', {timeZone:'Europe/London', month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit', second:'2-digit'})}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+          
+          {/* Price History Modal */}
+          {priceHistory && (() => {
+            const now = new Date();
+            const getCutoff = () => {
+              if (historyRange === 1) {
+                // 今天：从今天0点开始
+                return new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+              }
+              // 其他天数：从N天前的0点开始
+              return new Date(now.getFullYear(), now.getMonth(), now.getDate() - historyRange, 0, 0, 0, 0);
+            };
+            const cutoff = getCutoff();
+            const filteredHistory = priceHistory.history.filter(h => new Date(h.scraped_at) >= cutoff);
+            const displayHistory = (historyRange === 999 && filteredHistory.length === 0) ? priceHistory.history : filteredHistory;
+            
+            const prices = displayHistory.map(h => parseFloat(h.price));
+            const minP = prices.length > 0 ? Math.min(...prices) : 0;
+            const maxP = prices.length > 0 ? Math.max(...prices) : 0;
+            const avgP = prices.length > 0 ? (prices.reduce((a,b)=>a+b,0)/prices.length).toFixed(1) : 0;
+            
+            return (
+            <div className="modal-overlay" onClick={() => setPriceHistory(null)}>
+              <div className="modal-content" onClick={e => e.stopPropagation()}>
+                <div className="modal-header">
+                  <div className="modal-title">📈 价格历史</div>
+                  <button className="modal-close" onClick={() => setPriceHistory(null)}>&times;</button>
+                </div>
+                <div style={{marginBottom: '16px', color: '#666', fontSize: '14px'}}>
+                  {priceHistory.name || '未知小区'} ({priceHistory.listing_id})
+                </div>
+                
+                <div style={{display:'flex', gap:'8px', marginBottom:'16px'}}>
+                  {[1, 5, 10, 30].map(days => (
+                    <button key={days} onClick={() => setHistoryRange(days)}
+                      style={{padding:'6px 12px', border:'none', borderRadius:'16px', cursor:'pointer', fontSize:'12px', fontWeight:'600',
+                        background: historyRange === days ? '#1a73e8' : '#e0e0e0', color: historyRange === days ? 'white' : '#666'}}>
+                      {days === 1 ? '今天' : days + '天'}
+                    </button>
+                  ))}
+                  <button onClick={() => setHistoryRange(999)}
+                    style={{padding:'6px 12px', border:'none', borderRadius:'16px', cursor:'pointer', fontSize:'12px', fontWeight:'600',
+                      background: historyRange >= 100 ? '#1a73e8' : '#e0e0e0', color: historyRange >= 100 ? 'white' : '#666'}}>
+                    全部
+                  </button>
+                </div>
+                
+                <div style={{display:'grid', gridTemplateColumns:'repeat(4, 1fr)', gap:'12px', marginBottom:'20px', background:'#f5f5f5', padding:'16px', borderRadius:'12px'}}>
+                  <div style={{textAlign:'center'}}>
+                    <div style={{fontSize:'11px', color:'#666'}}>最低价</div>
+                    <div style={{fontSize:'18px', fontWeight:'700', color:'#34a853'}}>{minP}万</div>
+                  </div>
+                  <div style={{textAlign:'center'}}>
+                    <div style={{fontSize:'11px', color:'#666'}}>当前价</div>
+                    <div style={{fontSize:'18px', fontWeight:'700', color:'#1a73e8'}}>{displayHistory[0]?.price}万</div>
+                  </div>
+                  <div style={{textAlign:'center'}}>
+                    <div style={{fontSize:'11px', color:'#666'}}>最高价</div>
+                    <div style={{fontSize:'18px', fontWeight:'700', color:'#c5221f'}}>{maxP}万</div>
+                  </div>
+                  <div style={{textAlign:'center'}}>
+                    <div style={{fontSize:'11px', color:'#666'}}>均价</div>
+                    <div style={{fontSize:'18px', fontWeight:'700', color:'#666'}}>{avgP}万</div>
+                  </div>
+                </div>
+                
+                {displayHistory.length === 0 ? (
+                  <div style={{textAlign:'center', padding:'40px', color:'#999'}}>
+                    该时间段内暂无数据
+                  </div>
+                ) : (
+                <div className="price-chart">
+                  <div style={{fontSize:'13px', color:'#666', marginBottom:'16px'}}>
+                    共 {displayHistory.length} 条记录 {historyRange < 100 && `（最近${historyRange}天）`}
+                  </div>
+                  <svg width="100%" height="200" viewBox="0 0 800 200" preserveAspectRatio="xMidYMid meet">
+                    {(() => {
+                      const chartHeight = 140;
+                      const chartTop = 20;
+                      const chartBottom = chartHeight + chartTop;
+                      const chartLeft = 60;
+                      const chartRight = 740;
+                      const barCount = displayHistory.length;
+                      const barAreaWidth = chartRight - chartLeft;
+                      const barWidth = Math.min(40, (barAreaWidth / barCount) - 4);
+                      const priceRange = maxP - minP || 1;
+                      
+                      const yLabels = [];
+                      for (let i = 0; i <= 4; i++) {
+                        const price = minP + (priceRange * i / 4);
+                        const y = chartBottom - ((price - minP) / priceRange) * chartHeight;
+                        yLabels.push({price: price.toFixed(0), y});
+                      }
+                      
+                      const points = displayHistory.map((h, i) => {
+                        const x = chartLeft + (i + 0.5) * (barAreaWidth / barCount);
+                        const y = chartBottom - ((parseFloat(h.price) - minP) / priceRange) * chartHeight;
+                        return {x, y, price: h.price, date: h.scraped_at};
+                      });
+                      
+                      // 格式化日期：同一天只显示首次日期，后续只显示时间
+                      let lastDateStr = '';
+                      const formatDate = (dateStr) => {
+                        const d = new Date(dateStr);
+                        const datePart = d.toLocaleString('en-GB', {timeZone:'Europe/London', month:'2-digit', day:'2-digit'});
+                        const timePart = d.toLocaleString('en-GB', {timeZone:'Europe/London', hour:'2-digit', minute:'2-digit', hour12:false});
+                        if (datePart !== lastDateStr) {
+                          lastDateStr = datePart;
+                          return `${datePart.split('/').join('.')} ${timePart}`;
+                        }
+                        return timePart;
+                      };
+                      
+                      const linePath = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
+                      
+                      return (
+                        <g>
+                          {yLabels.map((l, i) => (
+                            <line key={i} x1={chartLeft} y1={l.y} x2={chartRight} y2={l.y} stroke="#eee" strokeWidth="1"/>
+                          ))}
+                          {yLabels.map((l, i) => (
+                            <text key={i} x={chartLeft - 8} y={l.y + 4} textAnchor="end" fontSize="10" fill="#999">{l.price}</text>
+                          ))}
+                          <path d={linePath} fill="none" stroke="#1a73e8" strokeWidth="2" opacity="0.5"/>
+                          {points.map((p, i) => {
+                            const barHeight = Math.max(2, ((parseFloat(p.price) - minP) / priceRange) * chartHeight);
+                            const isLatest = i === points.length - 1;
+                            return (
+                              <g key={i}>
+                                <rect 
+                                  x={p.x - barWidth/2} 
+                                  y={chartBottom - barHeight} 
+                                  width={barWidth} 
+                                  height={barHeight} 
+                                  fill={isLatest ? '#1a73e8' : '#93c5fd'} 
+                                  rx="4"
+                                />
+                                <text x={p.x} y={chartBottom + 14} textAnchor="middle" fontSize="9" fill="#666">
+                                  {formatDate(p.date)}
+                                </text>
+                                <text x={p.x} y={chartBottom - barHeight - 5} textAnchor="middle" fontSize="9" fontWeight="600" fill="#333">
+                                  {p.price}
+                                </text>
+                              </g>
+                            );
+                          })}
+                        </g>
+                      );
+                    })()}
+                  </svg>
+                </div>
+                )}
+              </div>
+            </div>
+            );
+          })()}
+          
+          <footer>
+            <p>数据来源: 链家网 · 由 OpenClaw 自动追踪</p>
+            <p>每5分钟自动更新 · 请勿视为投资建议，购房前请自行核实信息</p>
+          </footer>
+        </div>
+      );
+    }
+    
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
   </script>
 </body>
 </html>
