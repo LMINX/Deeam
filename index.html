@@ -905,20 +905,20 @@
                           📊 {listing.priceStats.min}万 - {listing.priceStats.max}万
                         </span>
                         <button className="history-btn" onClick={() => setPriceHistory({
-                      {/* Verify Button */}
-                      <button
-                        className={`verify-btn ${verificationStates[listing.listing_id] === 'verifying' ? 'verifying' : ''} ${verificationStates[listing.listing_id] === 'ok' ? 'verified-ok' : ''} ${verificationStates[listing.listing_id] === 'fail' ? 'verified-fail' : ''}`}
-                        onClick={(e) => { e.stopPropagation(); verifyListingUrl(listing); }}
-                        disabled={verificationStates[listing.listing_id] === 'verifying'}
-                        title="验证链接是否有效"
-                      >
-                        {verificationStates[listing.listing_id] === 'verifying' ? '验证中...' : verificationStates[listing.listing_id] === 'ok' ? '有效' : verificationStates[listing.listing_id] === 'fail' ? '已下架' : '验证'}
-                      </button>
                           name: listing.name,
                           listing_id: listing.listing_id,
                           ...listing.priceStats
                         })}>
                           📈 历史({listing.priceStats.count})
+                        </button>
+                        {/* Verify Button */}
+                        <button
+                          className={`verify-btn ${verificationStates[listing.listing_id] === 'verifying' ? 'verifying' : ''} ${verificationStates[listing.listing_id] === 'ok' ? 'verified-ok' : ''} ${verificationStates[listing.listing_id] === 'fail' ? 'verified-fail' : ''}`}
+                          onClick={(e) => { e.stopPropagation(); verifyListingUrl(listing); }}
+                          disabled={verificationStates[listing.listing_id] === 'verifying'}
+                          title="验证链接是否有效"
+                        >
+                          {verificationStates[listing.listing_id] === 'verifying' ? '验证中...' : verificationStates[listing.listing_id] === 'ok' ? '有效' : verificationStates[listing.listing_id] === 'fail' ? '已下架' : '验证'}
                         </button>
                       </div>
                     )}
