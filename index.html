@@ -882,13 +882,20 @@
                     </button>
                   </div>
                   <div className="listing-body">
+                    <div style={{fontSize: '14px', fontWeight: '800', color: '#667eea', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px'}}>
+                      🏘️ {listing.community || listing.district || '未知小区'}
+                      {listing.community && listing.district && listing.community !== listing.district && (
+                        <span style={{fontSize: '12px', fontWeight: '500', color: '#888', background: '#f3f4f6', padding: '2px 8px', borderRadius: '10px'}}>
+                          {listing.district}
+                        </span>
+                      )}
+                    </div>
                     <a href={listing.url} target="_blank" rel="noopener noreferrer" className="listing-name">
-                      {listing.name || '未知小区'}
+                      {listing.name || '未知房源'}
                     </a>
                     {listing.isFollowed && <span className="followed-badge">⭐ 已关注</span>}
                     {listing.isWishlist && <span className="wishlist-badge">💜 心愿单</span>}
-                    <div className="listing-info">📐 面积: {formatArea(listing.area)}</div>
-                    <div className="listing-info">📍 板块: {listing.district || '-'}</div>
+                    <div className="listing-info">📐 面积: {formatArea(listing.area)} | {listing.district || '-'}</div>
                     <div className="listing-info">🏢 楼层: {listing.floor || '-'} | {listing.year_build || '-'}年</div>
                     <div className="listing-info">💰 单价: {listing.unit_price || '-'}元/㎡</div>
                     <div className="listing-tags">
