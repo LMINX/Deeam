@@ -7,12 +7,23 @@
  * 3. 从链家页面抓取房源数据
  * 4. 上传到 Supabase
  * 5. 遇到 CAPTCHA 时通过 Discord 通知用户
+ * 
+ * 抓取模式：
+ *   --all (默认)    : 抓取所有区域，价格 ≤ 200万
+ *   --tianshan2     : 只抓取天山二村，不限价格
  */
 
 const { chromium } = require('playwright');
 const { execSync } = require('child_process');
 const https = require('https');
 const net = require('net');
+
+// ============ 抓取模式配置 ============
+// 模式说明：
+//   --all (默认) : 抓取所有区域，仅抓取价格 ≤ 200万的房源
+//   --tianshan2  : 只抓取天山二村小区，不限制价格
+const SCRAPE_MODE = process.argv.includes('--tianshan2') ? 'tianshan2' : 'all';
+console.log(`筛选模式: ${SCRAPE_MODE}`);
 
 // ============ 常量 ============
 const SCRIPT_TIMEOUT = 15 * 60 * 1000;
@@ -156,7 +167,7 @@ function uploadToSupabase(listings) {
 }
 
 // ============ 提取单页数据 ============
-async function extractFromPage(page, district) {
+async function extractFromPage(page, district, scrapeMode) {
   if (await detectCAPTCHA(page)) {
     return { success: false, error: 'CAPTCHA_DETECTED', listings: [] };
   }
@@ -165,7 +176,7 @@ async function extractFromPage(page, district) {
     await page.bringToFront();
     
     const result = await Promise.race([
-      page.evaluate(async (dist) => {
+      page.evaluate(async (dist, mode) => {
         return new Promise((resolve) => {
           setTimeout(() => {
             try {
@@ -186,14 +197,6 @@ async function extractFromPage(page, district) {
                 const idMatch = href.match(/\/ershoufang\/(\d+)\.html/);
                 if (!idMatch || idMatch[1].length < 10) return;
 
-                // Extract community name from data-el="region"
-                const regionEl = li.querySelector('[data-el="region"]');
-                let community = '';
-                if (regionEl) {
-                  community = regionEl.textContent || '';
-                }
-                community = community.replace(/\ufffd/g, '').replace(/\?/g, '').trim();
-
                 const rawName = text.split('|')[0].trim().substring(0, 60);
                 const name = rawName.replace(/\ufffd/g, '').replace(/\?/g, '').trim();
                 if (!name || name.length < 5) return;
@@ -201,10 +204,14 @@ async function extractFromPage(page, district) {
                 const priceMatch = text.match(/(\d+)\s*万/);
                 if (!priceMatch) return;
                 
+                // 价格筛选：默认模式只抓200万以下，天山二村模式不限制价格
+                const price = parseInt(priceMatch[1], 10);
+                const isTianshan2Mode = (mode === 'tianshan2');
+                if (!isTianshan2Mode && price > 200) return;
+                
                 results.push({
                   listing_id: idMatch[1],
                   name: name,
-                  community: community,
                   area: (text.match(/(\d+\.?\d*)\s*平米/) || ['', ''])[1],
                   price: priceMatch[1],
                   unit_price: '',
@@ -223,7 +230,7 @@ async function extractFromPage(page, district) {
             }
           }, 500);
         });
-      }, district),
+      }, district, SCRAPE_MODE),
       new Promise(resolve => setTimeout(() => resolve({ success: false, error: 'Page timeout' }), PAGE_TIMEOUT))
     ]);
     
@@ -272,8 +279,51 @@ async function main() {
         continue;
       }
       
-      const isTianshan = url.includes('天山') || url.includes('tianshan') || url.includes('rs%E5%A4%A9');
-      const district = isTianshan ? '天山二村' : '娄山关路';
+      // 根据筛选模式判断区域和是否需要抓取
+      let district = '未知';
+      let shouldScrape = false;
+      const decodedUrl = decodeURIComponent(url);
+      
+      if (SCRAPE_MODE === 'tianshan2') {
+        // ===== 天山二村模式 =====
+        // 目标：只抓取天山二村的房源，不限制价格
+        // 
+        // 匹配天山二村URL的多种形式：
+        //   - /ershoufang/rs天山二村/     → 直接搜索
+        //   - /ershoufang/rs%E5%A4%A9... → URL编码形式 (rs天山二村)
+        //   - /ershoufang/rs%E5%A4%A9%E5%B1%B1%E4%BA%8C%E6%9D%91 → 完整URL编码
+        //   - /ershoufang/tianshan2   → 拼音形式
+        //   - ?community=天山二村    → 参数形式
+        //   - /ershoufang/rs开头 + 天山二村编码 → 搜索结果页
+        const isTianshan2 = 
+          decodedUrl.includes('天山二村') ||                    // 解码后中文
+          url.includes('%E5%A4%A9%E5%B1%B1%E4%BA%8C%E6%9D%91') ||  // 完整URL编码
+          url.includes('tianshan2') ||                            // 拼音
+          url.includes('community=天山') ||                       // 参数
+          decodedUrl.includes('community=天山') ||
+          (url.includes('/ershoufang/rs') && url.includes('%E5%A4%A9')); // rs搜索页 + 天
+        
+        if (isTianshan2) {
+          district = '天山二村';
+          shouldScrape = true;
+        }
+      } else {
+        // ===== 默认模式 (--all) =====
+        // 目标：抓取所有区域，仅限制价格 ≤ 200万
+        // 区域判断：包含天山/天 → 天山二村，否则 → 娄山关路
+        const isTianshan = 
+          decodedUrl.includes('天山') || 
+          decodedUrl.includes('tian Shan') ||
+          decodedUrl.includes('tianshan') ||
+          url.includes('rs%E5%A4%A9');  // rs+天 (搜索前缀)
+        district = isTianshan ? '天山二村' : '娄山关路';
+        shouldScrape = true;
+      }
+      
+      if (!shouldScrape) {
+        console.log(`  -> 跳过（不符合筛选条件）`);
+        continue;
+      }
       
       console.log(`\n使用页面: ${url.substring(0, 70)}`);
       
@@ -282,7 +332,7 @@ async function main() {
         continue;
       }
       
-      const result = await extractFromPage(page, district);
+      const result = await extractFromPage(page, district, SCRAPE_MODE);
       
       if (result.success) {
         if (result.listings.length > 0) {
