@@ -98,13 +98,23 @@
       background: white; 
       border-radius: 20px; 
       overflow: hidden; 
-      box-shadow: 0 4px 16px rgba(0,0,0,0.08); 
-      transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.35s; 
+      box-shadow: 
+        0 1px 3px rgba(0,0,0,0.04),
+        0 4px 12px rgba(0,0,0,0.06); 
+      transition: 
+        transform 0.4s cubic-bezier(0.23, 1, 0.32, 1), 
+        box-shadow 0.4s cubic-bezier(0.23, 1, 0.32, 1); 
       cursor: pointer; 
       position: relative; 
-      border: 1px solid rgba(0,0,0,0.05);
+      border: 1px solid rgba(255,255,255,0.9);
     }
-    .listing-card:hover { transform: translateY(-8px) scale(1.01); box-shadow: 0 20px 48px rgba(102,126,234,0.2); }
+    .listing-card:hover { 
+      transform: translateY(-10px) scale(1.02); 
+      box-shadow: 
+        0 4px 8px rgba(102,126,234,0.08),
+        0 16px 40px rgba(102,126,234,0.18),
+        0 0 0 1px rgba(102,126,234,0.15);
+    }
     .listing-card.followed { border: 2px solid #f59e0b; }
     .listing-card.wishlist-item { border: 2px solid #8b5cf6; }
     .listing-image { 
@@ -151,10 +161,57 @@
     }
     .follow-btn:hover { transform: scale(1.18) rotate(15deg); background: white; }
     .follow-btn.followed { background: #fef3c7; }
-    .listing-body { padding: 20px; }
-    .listing-name { font-size: 15px; font-weight: 600; color: #1f2937; margin-bottom: 10px; text-decoration: none; display: block; line-height: 1.5; transition: color 0.2s; }
+    .listing-body { padding: 20px 22px 22px; }
+    .listing-community {
+      font-size: 12px;
+      font-weight: 700;
+      color: #667eea;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .listing-community .community-name {
+      background: linear-gradient(135deg, rgba(102,126,234,0.1), rgba(118,75,162,0.1));
+      color: #667eea;
+      padding: 4px 10px;
+      border-radius: 20px;
+      border: 1px solid rgba(102,126,234,0.2);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.2s;
+    }
+    .listing-card:hover .listing-community .community-name {
+      background: linear-gradient(135deg, rgba(102,126,234,0.15), rgba(118,75,162,0.15));
+      border-color: rgba(102,126,234,0.35);
+    }
+    .listing-community .district-tag {
+      background: #f3f4f6;
+      color: #888;
+      padding: 3px 8px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 500;
+    }
+    .listing-name { 
+      font-size: 15px; 
+      font-weight: 600; 
+      color: #1f2937; 
+      margin-bottom: 12px; 
+      text-decoration: none; 
+      display: block; 
+      line-height: 1.5; 
+      transition: color 0.2s;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
     .listing-name:hover { color: #667eea; }
-    .listing-info { font-size: 13px; color: #6b7280; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+    .listing-info { font-size: 13px; color: #6b7280; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+    .listing-info svg { flex-shrink: 0; opacity: 0.7; }
     .listing-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px; }
     .tag { 
       padding: 5px 12px; 
@@ -166,19 +223,32 @@
       letter-spacing: 0.3px;
     }
     .tag.wishlist-tag { background: linear-gradient(135deg, #fef3c7, #fde68a); color: #92400e; }
+    .price-wrapper {
+      margin-top: 14px;
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
     .price-tag { 
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
       color: white; 
-      padding: 12px 20px; 
+      padding: 10px 18px; 
       border-radius: 12px; 
       font-weight: 800; 
-      font-size: 24px; 
-      display: inline-block; 
-      margin-top: 14px; 
-      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4); 
-      letter-spacing: 1px;
+      font-size: 22px; 
+      display: inline-flex;
+      align-items: baseline;
+      gap: 4px;
+      box-shadow: 0 4px 16px rgba(102, 126, 234, 0.35); 
+      letter-spacing: 0.5px;
       position: relative;
       overflow: hidden;
+      transition: all 0.3s;
+    }
+    .listing-card:hover .price-tag {
+      box-shadow: 0 6px 24px rgba(102, 126, 234, 0.5);
+      transform: translateY(-1px);
     }
     .price-tag::before {
       content: '';
@@ -188,10 +258,16 @@
       width: 60%;
       height: 100%;
       background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-      transition: left 0.5s;
+      transition: left 0.6s;
     }
-    .price-tag:hover::before { left: 150%; }
-    .price-tag .unit { font-size: 13px; font-weight: 500; opacity: 0.85; margin-left: 6px; }
+    .listing-card:hover .price-tag::before { left: 150%; }
+    .price-tag .unit { font-size: 12px; font-weight: 500; opacity: 0.85; }
+    .price-tag .wan { font-size: 13px; font-weight: 600; opacity: 0.9; }
+    .price-unit { 
+      font-size: 12px; 
+      color: #6b7280; 
+      font-weight: 500;
+    }
     .empty { text-align: center; padding: 60px 20px; color: #999; }
     .empty-icon { font-size: 64px; margin-bottom: 16px; }
     .loading { text-align: center; padding: 60px 20px; color: #666; }
@@ -1074,12 +1150,10 @@
                     </button>
                   </div>
                   <div className="listing-body">
-                    <div style={{fontSize: '14px', fontWeight: '800', color: '#667eea', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px'}}>
-                      🏘️ {listing.community || listing.district || '未知小区'}
+                    <div className="listing-community">
+                      <span className="community-name">🏘️ {listing.community || listing.district || '未知小区'}</span>
                       {listing.community && listing.district && listing.community !== listing.district && (
-                        <span style={{fontSize: '12px', fontWeight: '500', color: '#888', background: '#f3f4f6', padding: '2px 8px', borderRadius: '10px'}}>
-                          {listing.district}
-                        </span>
+                        <span className="district-tag">{listing.district}</span>
                       )}
                     </div>
                     <a href={listing.url} target="_blank" rel="noopener noreferrer" className="listing-name">
@@ -1087,16 +1161,19 @@
                     </a>
                     {listing.isFollowed && <span className="followed-badge">⭐ 已关注</span>}
                     {listing.isWishlist && <span className="wishlist-badge">💜 心愿单</span>}
-                    <div className="listing-info">📐 面积: {formatArea(listing.area)} | {listing.district || '-'}</div>
-                    <div className="listing-info">🏢 楼层: {listing.floor || '-'} | {listing.year_build || '-'}年</div>
-                    <div className="listing-info">💰 单价: {listing.unit_price || '-'}元/㎡</div>
+                    <div className="listing-info">📐 {formatArea(listing.area)} · {listing.district || '-'}</div>
+                    <div className="listing-info">🏢 {listing.floor || '-'} · {listing.year_build || '-'}年建</div>
                     <div className="listing-tags">
                       {(listing.tags || '').split(',').filter(t => t).map((tag, i) => (
                         <span key={i} className={`tag ${listing.isWishlist ? 'wishlist-tag' : ''}`}>{tag.trim()}</span>
                       ))}
                     </div>
-                    <div className="price-tag">
-                      {listing.price}万<span className="unit"> ({listing.unit_price}元/㎡)</span>
+                    <div className="price-wrapper">
+                      <div className="price-tag">
+                        {listing.price}<span className="wan">万</span>
+                        <span className="unit">({listing.unit_price}元/㎡)</span>
+                      </div>
+                      <div className="price-unit">单价: {listing.unit_price || '-'}元/㎡</div>
                     </div>
                     {listing.priceStats && listing.priceStats.count > 1 && (
                       <div style={{marginTop: '6px'}}>
